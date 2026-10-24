@@ -1,15 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/useApp';
-import { SeverityBadge, VerificationBadge, ConfidenceBadge } from '../components/Badge';
-import {
-  Search,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  AlertCircle,
-  RotateCcw,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { FindingSeverity, ConfidenceLevel } from '../types';
+import { FindingsFilterBar } from '../components/finding/FindingsFilterBar';
+import { FindingsTable } from '../components/finding/FindingsTable';
 
 const SEVERITY_WEIGHT: Record<FindingSeverity, number> = {
   critical: 5,
@@ -38,7 +32,7 @@ export const FindingsPage: React.FC = () => {
 
   const isDemo = isBackendHealthy === false;
 
-  // Filter States (preserved across selection / detail drawer)
+  // Filter States
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [verificationFilter, setVerificationFilter] = useState<string>('all');
   const [confidenceFilter, setConfidenceFilter] = useState<string>('all');
@@ -60,58 +54,39 @@ export const FindingsPage: React.FC = () => {
   // 2. Multi-criteria filtering (search by title, asset, description, cwe, cve)
   const filteredFindings = useMemo(() => {
     return currentAssessmentFindings.filter((finding) => {
-      // Severity Filter
       if (severityFilter !== 'all' && finding.severity !== severityFilter) return false;
-
-      // Verification Filter
-      if (verificationFilter !== 'all' && finding.verification_status !== verificationFilter)
-        return false;
-
-      // Confidence Filter
+      if (verificationFilter !== 'all' && finding.verification_status !== verificationFilter) return false;
       if (confidenceFilter !== 'all' && finding.confidence !== confidenceFilter) return false;
 
-      // Search Query (Title, Asset, Description, CWE, CVE, Tool)
       const query = (searchQuery || globalSearch).toLowerCase().trim();
-      if (query) {
-        const matchesTitle = finding.title.toLowerCase().includes(query);
-        const matchesAsset = (finding.asset_id || '').toLowerCase().includes(query);
-        const matchesDesc = finding.description.toLowerCase().includes(query);
-        const matchesCwe = (finding.cwe || '').toLowerCase().includes(query);
-        const matchesCve = (finding.cve || '').toLowerCase().includes(query);
-        const matchesTool = finding.source_tool.toLowerCase().includes(query);
+      if (!query) return true;
 
-        if (!matchesTitle && !matchesAsset && !matchesDesc && !matchesCwe && !matchesCve && !matchesTool) {
-          return false;
-        }
-      }
+      const titleMatch = finding.title.toLowerCase().includes(query);
+      const descMatch = finding.description.toLowerCase().includes(query);
+      const assetMatch = (finding.asset_id || '').toLowerCase().includes(query);
+      const cweMatch = (finding.cwe || '').toLowerCase().includes(query);
+      const cveMatch = (finding.cve || '').toLowerCase().includes(query);
+      const toolMatch = finding.source_tool.toLowerCase().includes(query);
 
-      return true;
+      return titleMatch || descMatch || assetMatch || cweMatch || cveMatch || toolMatch;
     });
-  }, [
-    currentAssessmentFindings,
-    severityFilter,
-    verificationFilter,
-    confidenceFilter,
-    searchQuery,
-    globalSearch,
-  ]);
+  }, [currentAssessmentFindings, severityFilter, verificationFilter, confidenceFilter, searchQuery, globalSearch]);
 
-  // 3. Sorting (Severity, Confidence, Title, Date)
+  // 3. Sorting logic
   const sortedFindings = useMemo(() => {
     const list = [...filteredFindings];
     list.sort((a, b) => {
       let comparison = 0;
       if (sortBy === 'severity') {
-        comparison = SEVERITY_WEIGHT[a.severity] - SEVERITY_WEIGHT[b.severity];
+        comparison = SEVERITY_WEIGHT[b.severity] - SEVERITY_WEIGHT[a.severity];
       } else if (sortBy === 'confidence') {
-        comparison = CONFIDENCE_WEIGHT[a.confidence] - CONFIDENCE_WEIGHT[b.confidence];
+        comparison = CONFIDENCE_WEIGHT[b.confidence] - CONFIDENCE_WEIGHT[a.confidence];
       } else if (sortBy === 'title') {
         comparison = a.title.localeCompare(b.title);
       } else if (sortBy === 'date') {
-        comparison = new Date(a.first_seen).getTime() - new Date(b.first_seen).getTime();
+        comparison = new Date(b.first_seen).getTime() - new Date(a.first_seen).getTime();
       }
-
-      return sortOrder === 'desc' ? -comparison : comparison;
+      return sortOrder === 'asc' ? -comparison : comparison;
     });
     return list;
   }, [filteredFindings, sortBy, sortOrder]);
@@ -170,339 +145,44 @@ export const FindingsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Control Bar: Search, Filters, Sorting */}
-      <div className="panel" style={{ padding: '0.875rem 1.25rem' }}>
-        <div className="row-between responsive-stack">
-          {/* Search Input */}
-          <div style={{ position: 'relative', minWidth: '260px', flex: '1 1 280px' }}>
-            <Search
-              size={14}
-              style={{
-                position: 'absolute',
-                left: '0.75rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--color-text-dim)',
-              }}
-            />
-            <input
-              type="text"
-              className="input-text"
-              placeholder="Search by title, asset, description, CWE..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              style={{ width: '100%', paddingLeft: '2.2rem' }}
-              aria-label="Search findings by title, asset, and description"
-            />
-          </div>
-
-          {/* Filters Group */}
-          <div className="row" style={{ flexWrap: 'wrap' }}>
-            {/* Severity Filter */}
-            <div className="row" style={{ gap: '0.25rem' }}>
-              <span className="dim text-xs" style={{ fontWeight: 600 }}>SEVERITY:</span>
-              <select
-                className="input-select"
-                value={severityFilter}
-                onChange={(e) => {
-                  setSeverityFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                aria-label="Filter by severity"
-              >
-              <option value="all">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-              <option value="informational">Informational</option>
-            </select>
-          </div>
-
-          {/* Verification Status Filter */}
-          <div className="row" style={{ gap: '0.25rem' }}>
-            <span className="dim text-xs" style={{ fontWeight: 600 }}>VERIFICATION:</span>
-            <select
-              className="input-select"
-              value={verificationFilter}
-              onChange={(e) => {
-                setVerificationFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              aria-label="Filter by verification status"
-            >
-              <option value="all">All Statuses</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="likely">Likely</option>
-              <option value="unverified">Unverified</option>
-              <option value="false_positive">False Positive</option>
-            </select>
-          </div>
-
-          {/* Confidence Filter */}
-          <div className="row" style={{ gap: '0.25rem' }}>
-            <span className="dim text-xs" style={{ fontWeight: 600 }}>CONFIDENCE:</span>
-            <select
-              className="input-select"
-              value={confidenceFilter}
-              onChange={(e) => {
-                setConfidenceFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              aria-label="Filter by confidence"
-            >
-              <option value="all">All Confidence</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-
-          {/* Reset Filters Button */}
-          {isFilterActive && (
-            <button
-              className="btn btn-secondary btn-xs"
-              onClick={resetFilters}
-              title="Reset all search queries and filters"
-            >
-              <RotateCcw size={12} />
-              <span>Reset</span>
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+      {/* Control Bar: Search, Filters */}
+      <FindingsFilterBar
+        searchQuery={searchQuery}
+        setSearchQuery={(val) => {
+          setSearchQuery(val);
+          setCurrentPage(1);
+        }}
+        severityFilter={severityFilter}
+        setSeverityFilter={(val) => {
+          setSeverityFilter(val);
+          setCurrentPage(1);
+        }}
+        verificationFilter={verificationFilter}
+        setVerificationFilter={(val) => {
+          setVerificationFilter(val);
+          setCurrentPage(1);
+        }}
+        confidenceFilter={confidenceFilter}
+        setConfidenceFilter={(val) => {
+          setConfidenceFilter(val);
+          setCurrentPage(1);
+        }}
+        isFilterActive={isFilterActive}
+        onResetFilters={resetFilters}
+      />
 
       {/* Findings Table */}
-      <div className="table-container table-scroll">
-        <table className="data-table">
-          <thead>
-            <tr>
-              {/* Severity Column Header with Sort */}
-              <th
-                style={{ width: '135px', cursor: 'pointer', userSelect: 'none' }}
-                onClick={() => handleToggleSort('severity')}
-                title="Sort by Severity"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span>Severity</span>
-                  <ArrowUpDown
-                    size={12}
-                    style={{
-                      color: sortBy === 'severity' ? 'var(--color-accent)' : 'var(--color-text-dim)',
-                    }}
-                  />
-                </div>
-              </th>
-
-              {/* Title & Description Column Header */}
-              <th
-                style={{ cursor: 'pointer', userSelect: 'none' }}
-                onClick={() => handleToggleSort('title')}
-                title="Sort by Title"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span>Vulnerability & Context</span>
-                  <ArrowUpDown
-                    size={12}
-                    style={{
-                      color: sortBy === 'title' ? 'var(--color-accent)' : 'var(--color-text-dim)',
-                    }}
-                  />
-                </div>
-              </th>
-
-              {/* Affected Asset */}
-              <th style={{ width: '160px' }}>Affected Asset</th>
-
-              {/* Confidence Column (Distinct from Severity) */}
-              <th
-                style={{ width: '130px', cursor: 'pointer', userSelect: 'none' }}
-                onClick={() => handleToggleSort('confidence')}
-                title="Sort by Confidence Level"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span>Confidence</span>
-                  <ArrowUpDown
-                    size={12}
-                    style={{
-                      color: sortBy === 'confidence' ? 'var(--color-accent)' : 'var(--color-text-dim)',
-                    }}
-                  />
-                </div>
-              </th>
-
-              {/* Verification Status */}
-              <th style={{ width: '140px' }}>Verification Status</th>
-
-              {/* Evidence References */}
-              <th style={{ width: '110px' }}>Evidence Proof</th>
-
-              {/* Source Tool */}
-              <th style={{ width: '110px' }}>Source Tool</th>
-
-              {/* Action */}
-              <th style={{ width: '90px' }}>Detail</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              [1, 2, 3, 4, 5].map((idx) => (
-                <tr key={`skeleton-${idx}`}>
-                  <td><span className="skeleton" style={{ width: '80px', height: '1.25rem' }} /></td>
-                  <td>
-                    <span className="skeleton" style={{ width: '60%', height: '1rem', marginBottom: '6px' }} />
-                    <span className="skeleton" style={{ width: '90%', height: '0.75rem' }} />
-                  </td>
-                  <td><span className="skeleton" style={{ width: '100px', height: '1rem' }} /></td>
-                  <td><span className="skeleton" style={{ width: '65px', height: '1.25rem' }} /></td>
-                  <td><span className="skeleton" style={{ width: '75px', height: '1.25rem' }} /></td>
-                  <td><span className="skeleton" style={{ width: '50px', height: '1rem' }} /></td>
-                  <td><span className="skeleton" style={{ width: '70px', height: '1rem' }} /></td>
-                  <td><span className="skeleton" style={{ width: '60px', height: '1.5rem' }} /></td>
-                </tr>
-              ))
-            ) : paginatedFindings.length === 0 ? (
-              <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
-                    <AlertCircle size={28} style={{ color: 'var(--color-text-dim)' }} />
-                    <div style={{ fontWeight: 600, color: 'var(--color-text-main)', fontSize: '0.95rem' }}>
-                      {currentAssessmentFindings.length === 0
-                        ? 'No findings recorded for this assessment.'
-                        : 'No findings match the active search and filter criteria.'}
-                    </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', maxWidth: '400px' }}>
-                      {currentAssessmentFindings.length === 0
-                        ? 'Run an authorized scan or import tool output to populate findings.'
-                        : 'Try adjusting your search query, severity, or verification filter settings.'}
-                    </div>
-                    {isFilterActive && (
-                      <button className="btn btn-secondary" onClick={resetFilters} style={{ marginTop: '0.5rem' }}>
-                        <RotateCcw size={13} />
-                        <span>Reset All Filters</span>
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              paginatedFindings.map((finding) => {
-                const isSelected = selectedFindingId === finding.id;
-                const hasEvidence = finding.evidence_references && finding.evidence_references.length > 0;
-
-                return (
-                  <tr
-                    key={finding.id}
-                    className={`clickable ${isSelected ? 'selected' : ''}`}
-                    onClick={() => setSelectedFindingId(finding.id)}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedFindingId(finding.id);
-                      }
-                    }}
-                    aria-label={`Inspect finding: ${finding.title}`}
-                  >
-                    {/* Severity Badge */}
-                    <td className="w-severity">
-                      <SeverityBadge severity={finding.severity} />
-                    </td>
-
-                    {/* Title, Taxonomy, and Description snippet */}
-                    <td>
-                      <div style={{ fontWeight: 600 }}>
-                        {finding.title}
-                      </div>
-                      <div className="row dim text-xs" style={{ gap: '0.5rem', marginTop: '2px' }}>
-                        <span className="font-mono">{finding.id}</span>
-                        {finding.cwe && <span className="font-mono">· {finding.cwe}</span>}
-                        {finding.cve && <span className="font-mono">· {finding.cve}</span>}
-                      </div>
-                      <div className="muted text-xs truncate-1" style={{ marginTop: '4px' }}>
-                        {finding.description}
-                      </div>
-                    </td>
-
-                    {/* Affected Asset */}
-                    <td className="font-mono text-sm">
-                      {finding.asset_id || 'Global Target'}
-                    </td>
-
-                    {/* Confidence Badge (Visibly separated from severity) */}
-                    <td>
-                      <ConfidenceBadge confidence={finding.confidence} />
-                    </td>
-
-                    {/* Verification Status */}
-                    <td>
-                      <VerificationBadge status={finding.verification_status} />
-                    </td>
-
-                    {/* Evidence Proof indicator */}
-                    <td>
-                      {hasEvidence ? (
-                        <span
-                          className="font-mono"
-                          style={{
-                            fontSize: '0.72rem',
-                            backgroundColor: 'var(--color-surface-hover)',
-                            padding: '0.15rem 0.45rem',
-                            borderRadius: '3px',
-                            border: '1px solid var(--color-border)',
-                            color: 'var(--color-text-main)',
-                            display: 'inline-block',
-                          }}
-                        >
-                          {finding.evidence_references.length} proof item(s)
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            fontSize: '0.72rem',
-                            color: 'var(--color-sev-medium-text)',
-                            backgroundColor: 'var(--color-sev-medium-bg)',
-                            border: '1px solid var(--color-sev-medium-border)',
-                            padding: '0.1rem 0.35rem',
-                            borderRadius: '3px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          Missing
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Origin Tool */}
-                    <td style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                      {finding.source_tool}
-                    </td>
-
-                    {/* Detail Action */}
-                    <td>
-                      <button
-                        className="btn btn-secondary"
-                        style={{ padding: '0.25rem 0.55rem', fontSize: '0.72rem' }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedFindingId(finding.id);
-                        }}
-                        aria-label={`Open details for ${finding.id}`}
-                      >
-                        Inspect
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+      <FindingsTable
+        findings={paginatedFindings}
+        totalAssessmentFindingsCount={currentAssessmentFindings.length}
+        selectedFindingId={selectedFindingId}
+        onSelectFinding={(id) => setSelectedFindingId(id)}
+        isLoading={isLoading}
+        sortBy={sortBy}
+        onToggleSort={handleToggleSort}
+        isFilterActive={isFilterActive}
+        onResetFilters={resetFilters}
+      />
 
       {/* Pagination Controls for Large Datasets */}
       {totalPages > 1 && (
