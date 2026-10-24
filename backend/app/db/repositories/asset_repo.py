@@ -3,6 +3,7 @@ import json
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from aegis_common.enums import ScopeStatus
 from aegis_common.models import Asset
 from backend.app.db.models import AssessmentModel, AssetModel
 
@@ -41,7 +42,17 @@ class AssetRepository:
             if model:
                 model.last_seen = asset.last_seen
                 model.confidence = max(model.confidence, asset.confidence)
-                model.scope_classification = asset.scope_classification.value
+                # Never change an out-of-scope asset into an approved/in-scope one simply because another source reports it
+                if model.scope_classification == ScopeStatus.OUT_OF_SCOPE.value and asset.scope_classification.value == ScopeStatus.IN_SCOPE.value:
+                    pass  # Keep OUT_OF_SCOPE
+                else:
+                    model.scope_classification = asset.scope_classification.value
+
+                # Merge metadata
+                if asset.metadata:
+                    existing_meta = json.loads(model.metadata_json) if model.metadata_json else {}
+                    existing_meta.update(asset.metadata)
+                    model.metadata_json = json.dumps(existing_meta)
 
                 # Merge relationships
                 existing_rels = json.loads(model.relationships_json) if model.relationships_json else {}
@@ -63,6 +74,20 @@ class AssetRepository:
                 return model.to_domain()
 
         return self.create(asset)
+
+    def update(self, asset: Asset) -> Asset:
+        model = self.session.get(AssetModel, asset.asset_id)
+        if not model:
+            raise ValueError(f"Asset {asset.asset_id} not found.")
+
+        model.last_seen = asset.last_seen
+        model.confidence = asset.confidence
+        model.scope_classification = asset.scope_classification.value
+        model.source_evidence_ids_json = json.dumps(asset.source_evidence_ids)
+        model.relationships_json = json.dumps(asset.relationships)
+        model.metadata_json = json.dumps(asset.metadata)
+        self.session.flush()
+        return model.to_domain()
 
     def get(self, asset_id: str) -> Asset | None:
         model = self.session.get(AssetModel, asset_id)
