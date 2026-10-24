@@ -1,9 +1,9 @@
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
 import ipaddress
 import posixpath
-from typing import Any, List, Optional, Set, Tuple, Union
+from dataclasses import dataclass
+from datetime import UTC
+from enum import Enum
+from typing import Any
 from urllib.parse import urlsplit
 
 from aegis_common.enums import AssessmentStatus, ScopeStatus, TargetType, TestPermissionLevel
@@ -48,12 +48,12 @@ class NormalizedTarget:
     target_type: TargetType
     canonical: str
     hostname: str
-    scheme: Optional[str] = None
-    port: Optional[int] = None
-    effective_port: Optional[int] = None
-    path: Optional[str] = None
-    ip_object: Optional[Union[ipaddress.IPv4Address, ipaddress.IPv6Address]] = None
-    cidr_object: Optional[Union[ipaddress.IPv4Network, ipaddress.IPv6Network]] = None
+    scheme: str | None = None
+    port: int | None = None
+    effective_port: int | None = None
+    path: str | None = None
+    ip_object: ipaddress.IPv4Address | ipaddress.IPv6Address | None = None
+    cidr_object: ipaddress.IPv4Network | ipaddress.IPv6Network | None = None
 
 
 @dataclass(frozen=True)
@@ -62,18 +62,18 @@ class ScopeValidationResult:
     allowed: bool
     reason_code: ScopeReasonCode
     explanation: str
-    normalized_target: Optional[str] = None
-    target_type: Optional[TargetType] = None
-    effective_host: Optional[str] = None
-    effective_port: Optional[int] = None
-    effective_path: Optional[str] = None
-    matching_rule_id: Optional[str] = None
+    normalized_target: str | None = None
+    target_type: TargetType | None = None
+    effective_host: str | None = None
+    effective_port: int | None = None
+    effective_path: str | None = None
+    matching_rule_id: str | None = None
 
     @property
     def scope_status(self) -> ScopeStatus:
         return ScopeStatus.IN_SCOPE if self.allowed else ScopeStatus.OUT_OF_SCOPE
 
-    def to_tuple(self) -> Tuple[bool, str, ScopeStatus]:
+    def to_tuple(self) -> tuple[bool, str, ScopeStatus]:
         """Backward-compatible tuple (is_allowed, explanation, scope_status)."""
         return self.allowed, self.explanation, self.scope_status
 
@@ -314,7 +314,7 @@ class ScopeValidator:
         }
 
     @classmethod
-    def extract_scope_rules(cls, assessment_scope: Any) -> Tuple[Optional[str], List[ScopeRule]]:
+    def extract_scope_rules(cls, assessment_scope: Any) -> tuple[str | None, list[ScopeRule]]:
         """
         Extracts scope rules and checks assessment lifecycle status.
         Returns: (denial_reason: Optional[str], rules: List[ScopeRule])
@@ -338,7 +338,7 @@ class ScopeValidator:
                 now = utc_now()
                 # Ensure tz-aware comparison
                 if expires_at.tzinfo is None:
-                    expires_at = expires_at.replace(tzinfo=timezone.utc)
+                    expires_at = expires_at.replace(tzinfo=UTC)
                 if now > expires_at:
                     return f"Assessment expired on {expires_at.isoformat()} (fail closed).", []
 
@@ -365,9 +365,9 @@ class ScopeValidator:
         return f"Unsupported assessment_scope type: {type(assessment_scope)}", []
 
     @classmethod
-    def _convert_policy_to_rules(cls, policy: ScopePolicy) -> List[ScopeRule]:
+    def _convert_policy_to_rules(cls, policy: ScopePolicy) -> list[ScopeRule]:
         """Converts legacy aggregated ScopePolicy to discrete ScopeRule objects."""
-        rules: List[ScopeRule] = []
+        rules: list[ScopeRule] = []
         for d in policy.target_domains:
             clean = d.strip().lower().rstrip(".")
             inc_sub = clean.startswith("*.")
@@ -468,7 +468,7 @@ class ScopeValidator:
                 return ScopeValidationResult(
                     allowed=False,
                     reason_code=ScopeReasonCode.EXCLUDED_TARGET,
-                    explanation=f"Target '{norm.canonical}' matches explicit exclusion rule '{excl.target_value}'.",
+                    explanation=f"Target '{norm.canonical}' matches excluded target '{excl.target_value}'.",
                     normalized_target=norm.canonical,
                     target_type=norm.target_type,
                     effective_host=norm.hostname,
@@ -493,7 +493,7 @@ class ScopeValidator:
             if rule.approved_ports and norm.effective_port is not None:
                 if norm.effective_port not in rule.approved_ports:
                     port_denied_reason = (
-                        f"Effective port {norm.effective_port} is not in approved ports {rule.approved_ports} for rule '{rule.target_value}'."
+                        f"Port {norm.effective_port} is not in allowed_ports list: {rule.approved_ports} (rule: '{rule.target_value}')."
                     )
                     continue
 
@@ -565,7 +565,7 @@ class ScopeValidator:
         return matches
 
     @classmethod
-    def _matches_host(cls, norm: NormalizedTarget, rule: ScopeRule) -> Tuple[bool, Optional[str]]:
+    def _matches_host(cls, norm: NormalizedTarget, rule: ScopeRule) -> tuple[bool, str | None]:
         """
         Evaluates hostname or IP match between target and rule.
         Returns (matches: bool, subdomain_denial_reason: Optional[str]).
@@ -755,7 +755,7 @@ class ScopeValidator:
         )
 
     @classmethod
-    def is_in_scope(cls, raw_target: str, scope: Any) -> Tuple[bool, str, ScopeStatus]:
+    def is_in_scope(cls, raw_target: str, scope: Any) -> tuple[bool, str, ScopeStatus]:
         """
         Backward-compatible check returning (is_allowed, reason, scope_status).
         """
@@ -765,7 +765,7 @@ class ScopeValidator:
     @classmethod
     def check_permission(
         cls, requested_level: TestPermissionLevel, allowed_level: TestPermissionLevel
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Ensures a tool operation does not exceed the assessment's approved test profile level.
         """
