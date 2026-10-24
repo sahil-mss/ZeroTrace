@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { apiClient } from '../api/client';
 import { DEMO_FINDINGS, DEMO_EVIDENCE } from '../data/demoData';
-import type { Finding, Evidence, AIAnalysis } from '../types';
+import type { Finding, Evidence } from '../types';
 
 describe('AI Analysis Service & Client Interaction', () => {
   const originalFetch = globalThis.fetch;
@@ -118,7 +118,7 @@ describe('AI Analysis Service & Client Interaction', () => {
     expect(result.confidence).toBe('low');
     expect(result.verification_status).toBe('unverified');
     expect(result.cited_evidence_ids).toHaveLength(0);
-    expect(result.limitations.some((l) => l.includes('CRITICAL EVIDENCE GAP'))).toBe(true);
+    expect(result.limitations?.some((l) => l.includes('CRITICAL EVIDENCE GAP'))).toBe(true);
     // Crucial rule: original finding is unverified, AI analysis must not confirm it
     expect(result.verification_status).not.toBe('confirmed');
   });
@@ -162,7 +162,7 @@ describe('AI Analysis Service & Client Interaction', () => {
     expect(result.finding_id).toBe('fnd_001');
     expect(result.is_rule_based_fallback).toBe(true);
     expect(result.analysis_provider).toBe('development_mock_adapter');
-    expect(result.evidence_facts.length).toBeGreaterThan(0);
+    expect((result.evidence_facts || []).length).toBeGreaterThan(0);
     expect(result.summary).toContain('SQL Injection');
   });
 });

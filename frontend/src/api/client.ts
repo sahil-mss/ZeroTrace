@@ -210,6 +210,70 @@ class ApiService {
       throw err;
     }
   }
+  /**
+   * Check status of connected security and OSINT modules
+   */
+  public async getModuleStatuses(): Promise<{
+    orchestrator_status: string;
+    osint_status: string;
+    scanner_status: string;
+    details: any;
+  }> {
+    if (this.useMock) {
+      return {
+        orchestrator_status: 'connected',
+        osint_status: 'connected',
+        scanner_status: 'connected',
+        details: 'Mock Mode',
+      };
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/api/upstream/modules`, {
+        headers: this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {},
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch {
+      return {
+        orchestrator_status: 'not_connected',
+        osint_status: 'not_connected',
+        scanner_status: 'not_connected',
+        details: 'Upstream module unreachable',
+      };
+    }
+  }
+
+  /**
+   * Normalizes raw OSINT and scanner payload through the adapter
+   */
+  public async normalizeUpstreamPayload(payload: {
+    assessment?: any;
+    assets?: any[];
+    findings?: any[];
+    evidence?: any[];
+    fallback_assessment_id?: string;
+  }): Promise<{
+    assessment: any;
+    assets: any[];
+    findings: any[];
+    evidence: any[];
+  }> {
+    const response = await fetch(`${this.baseUrl}/api/upstream/normalize`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Normalization error: HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  }
 }
 
 export const apiClient = new ApiService();

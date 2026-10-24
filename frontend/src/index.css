@@ -455,3 +455,96 @@ h3, .h3 {
   padding: 0.35rem 1rem;
   text-align: center;
 }
+
+/* ==========================================================================
+   Print-to-PDF Professional Layout & Page-Break Styles
+   ========================================================================== */
+@media print {
+  /* Hide interactive elements, sidebars, top controls, banners */
+  header,
+  aside,
+  nav,
+  .sidebar,
+  .topbar,
+  .demo-banner,
+  .no-print,
+  button,
+  .btn,
+  .btn-primary,
+  .btn-secondary {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #root, .app-shell, main {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .report-canvas {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    width: 100% !important;
+  }
+
+  .report-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .report-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1px solid #d1d5db !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  table {
+    page-break-inside: auto;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  th, td {
+    border: 1px solid #d1d5db !important;
+    padding: 6px 8px !important;
+    color: #111827 !important;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    font-weight: 700 !important;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: #111827 !important;
+  }
+}
