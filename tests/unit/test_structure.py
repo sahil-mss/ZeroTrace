@@ -33,6 +33,7 @@ class TestProjectStructure(unittest.TestCase):
             "aegispt.security_engine.verification",
             "aegispt.security_engine.storage",
             "aegispt.security_engine.evaluation",
+            "aegispt.security_engine.normalization",
         ]
         for pkg in subpackages:
             with self.subTest(package=pkg):
