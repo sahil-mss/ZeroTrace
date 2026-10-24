@@ -51,6 +51,7 @@ class AssessmentModel(Base):
     SQLAlchemy ORM model for authorized assessments.
     Maps to canonical `Assessment` domain contract.
     """
+
     __tablename__ = "assessments"
 
     assessment_id = Column(String(64), primary_key=True)
@@ -63,7 +64,9 @@ class AssessmentModel(Base):
     authorization_acknowledged = Column(Boolean, nullable=False, default=False)
     scope_rules_json = Column(Text, nullable=False, default="[]")
     scope_json = Column(Text, nullable=False, default="{}")
-    lifecycle_status = Column(String(32), nullable=False, default=AssessmentStatus.PENDING_APPROVAL.value, index=True)
+    lifecycle_status = Column(
+        String(32), nullable=False, default=AssessmentStatus.PENDING_APPROVAL.value, index=True
+    )
     max_concurrency = Column(Integer, nullable=False, default=3)
     max_requests_per_minute = Column(Integer, nullable=False, default=60)
     permitted_profiles_json = Column(Text, nullable=False, default='["PASSIVE_ONLY"]')
@@ -75,10 +78,16 @@ class AssessmentModel(Base):
 
     # Relationships
     assets = relationship("AssetModel", back_populates="assessment", cascade="all, delete-orphan")
-    findings = relationship("FindingModel", back_populates="assessment", cascade="all, delete-orphan")
+    findings = relationship(
+        "FindingModel", back_populates="assessment", cascade="all, delete-orphan"
+    )
     jobs = relationship("JobModel", back_populates="assessment", cascade="all, delete-orphan")
-    evidence = relationship("EvidenceModel", back_populates="assessment", cascade="all, delete-orphan")
-    events = relationship("AuditEventModel", back_populates="assessment", cascade="all, delete-orphan")
+    evidence = relationship(
+        "EvidenceModel", back_populates="assessment", cascade="all, delete-orphan"
+    )
+    events = relationship(
+        "AuditEventModel", back_populates="assessment", cascade="all, delete-orphan"
+    )
 
     @property
     def title(self) -> str:
@@ -99,9 +108,15 @@ class AssessmentModel(Base):
     def to_domain(self) -> Assessment:
         scope_rules_data = json.loads(self.scope_rules_json) if self.scope_rules_json else []
         scope_rules = [ScopeRule.model_validate(r) for r in scope_rules_data]
-        scope_data = json.loads(self.scope_json) if self.scope_json and self.scope_json != "{}" else None
+        scope_data = (
+            json.loads(self.scope_json) if self.scope_json and self.scope_json != "{}" else None
+        )
         scope = ScopePolicy.model_validate(scope_data) if scope_data else None
-        profiles_data = json.loads(self.permitted_profiles_json) if self.permitted_profiles_json else ["PASSIVE_ONLY"]
+        profiles_data = (
+            json.loads(self.permitted_profiles_json)
+            if self.permitted_profiles_json
+            else ["PASSIVE_ONLY"]
+        )
         permitted_profiles = [TestPermissionLevel(p) for p in profiles_data]
 
         return Assessment(
@@ -120,10 +135,18 @@ class AssessmentModel(Base):
             max_requests_per_minute=self.max_requests_per_minute,
             permitted_profiles=permitted_profiles,
             schema_version=self.schema_version,
-            created_at=self.created_at.replace(tzinfo=UTC) if self.created_at and not self.created_at.tzinfo else self.created_at,
-            updated_at=self.updated_at.replace(tzinfo=UTC) if self.updated_at and not self.updated_at.tzinfo else self.updated_at,
-            expires_at=self.expires_at.replace(tzinfo=UTC) if self.expires_at and not self.expires_at.tzinfo else self.expires_at,
-            completed_at=self.completed_at.replace(tzinfo=UTC) if self.completed_at and not self.completed_at.tzinfo else self.completed_at,
+            created_at=self.created_at.replace(tzinfo=UTC)
+            if self.created_at and not self.created_at.tzinfo
+            else self.created_at,
+            updated_at=self.updated_at.replace(tzinfo=UTC)
+            if self.updated_at and not self.updated_at.tzinfo
+            else self.updated_at,
+            expires_at=self.expires_at.replace(tzinfo=UTC)
+            if self.expires_at and not self.expires_at.tzinfo
+            else self.expires_at,
+            completed_at=self.completed_at.replace(tzinfo=UTC)
+            if self.completed_at and not self.completed_at.tzinfo
+            else self.completed_at,
         )
 
     @classmethod
@@ -160,6 +183,7 @@ class AssetModel(Base):
     SQLAlchemy ORM model for target assets.
     Maps to canonical `Asset` domain contract.
     """
+
     __tablename__ = "assets"
     __table_args__ = (
         UniqueConstraint("assessment_id", "normalized_value", name="uq_asset_assessment_value"),
@@ -167,10 +191,17 @@ class AssetModel(Base):
     )
 
     asset_id = Column(String(64), primary_key=True)
-    assessment_id = Column(String(64), ForeignKey("assessments.assessment_id", ondelete="CASCADE"), nullable=False, index=True)
+    assessment_id = Column(
+        String(64),
+        ForeignKey("assessments.assessment_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     asset_type = Column(String(32), nullable=False)
     normalized_value = Column(String(512), nullable=False, index=True)
-    scope_classification = Column(String(32), nullable=False, default=ScopeStatus.PENDING_REVIEW.value)
+    scope_classification = Column(
+        String(32), nullable=False, default=ScopeStatus.PENDING_REVIEW.value
+    )
     confidence = Column(Float, nullable=False, default=1.0)
     source_evidence_ids_json = Column(Text, nullable=False, default="[]")
     is_inferred = Column(Boolean, nullable=False, default=False)
@@ -222,13 +253,19 @@ class AssetModel(Base):
             normalized_value=self.normalized_value,
             scope_classification=ScopeStatus(self.scope_classification),
             confidence=self.confidence,
-            source_evidence_ids=json.loads(self.source_evidence_ids_json) if self.source_evidence_ids_json else [],
+            source_evidence_ids=json.loads(self.source_evidence_ids_json)
+            if self.source_evidence_ids_json
+            else [],
             is_inferred=self.is_inferred,
             directly_observed=self.directly_observed,
             relationships=json.loads(self.relationships_json) if self.relationships_json else {},
             metadata=json.loads(self.metadata_json) if self.metadata_json else {},
-            first_seen=self.first_seen.replace(tzinfo=UTC) if self.first_seen and not self.first_seen.tzinfo else self.first_seen,
-            last_seen=self.last_seen.replace(tzinfo=UTC) if self.last_seen and not self.last_seen.tzinfo else self.last_seen,
+            first_seen=self.first_seen.replace(tzinfo=UTC)
+            if self.first_seen and not self.first_seen.tzinfo
+            else self.first_seen,
+            last_seen=self.last_seen.replace(tzinfo=UTC)
+            if self.last_seen and not self.last_seen.tzinfo
+            else self.last_seen,
             schema_version=self.schema_version,
         )
 
@@ -257,11 +294,19 @@ class EvidenceModel(Base):
     SQLAlchemy ORM model for immutable evidence provenance records.
     Maps to canonical `Evidence` domain contract.
     """
+
     __tablename__ = "evidence"
 
     evidence_id = Column(String(64), primary_key=True, index=True)
-    assessment_id = Column(String(64), ForeignKey("assessments.assessment_id", ondelete="CASCADE"), nullable=False, index=True)
-    asset_id = Column(String(64), ForeignKey("assets.asset_id", ondelete="SET NULL"), nullable=True, index=True)
+    assessment_id = Column(
+        String(64),
+        ForeignKey("assessments.assessment_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    asset_id = Column(
+        String(64), ForeignKey("assets.asset_id", ondelete="SET NULL"), nullable=True, index=True
+    )
     source_name = Column(String(128), nullable=False)
     source_type = Column(String(64), nullable=False)
     collection_method = Column(String(64), nullable=False, default="AUTOMATED_PROBE")
@@ -270,7 +315,9 @@ class EvidenceModel(Base):
     raw_payload_ref = Column(String(512), nullable=True)
     sanitized_excerpt = Column(Text, nullable=True)
     data_json = Column(Text, nullable=False, default="{}")
-    data_classification = Column(String(32), nullable=False, default=DataClassification.INTERNAL.value)
+    data_classification = Column(
+        String(32), nullable=False, default=DataClassification.INTERNAL.value
+    )
     tool_version = Column(String(32), nullable=True, default="1.0")
     metadata_json = Column(Text, nullable=False, default="{}")
     schema_version = Column(String(16), nullable=False, default="1.0")
@@ -303,7 +350,9 @@ class EvidenceModel(Base):
             source_name=self.source_name,
             source_type=EvidenceSourceType(self.source_type),
             collection_method=self.collection_method,
-            collected_at=self.collected_at.replace(tzinfo=UTC) if self.collected_at and not self.collected_at.tzinfo else self.collected_at,
+            collected_at=self.collected_at.replace(tzinfo=UTC)
+            if self.collected_at and not self.collected_at.tzinfo
+            else self.collected_at,
             content_hash=self.content_hash,
             raw_payload_ref=self.raw_payload_ref,
             sanitized_excerpt=self.sanitized_excerpt,
@@ -340,18 +389,28 @@ class FindingModel(Base):
     SQLAlchemy ORM model for security findings and vulnerabilities.
     Maps to canonical `Finding` domain contract.
     """
+
     __tablename__ = "findings"
 
     finding_id = Column(String(64), primary_key=True)
-    assessment_id = Column(String(64), ForeignKey("assessments.assessment_id", ondelete="CASCADE"), nullable=False, index=True)
-    asset_id = Column(String(64), ForeignKey("assets.asset_id", ondelete="CASCADE"), nullable=False, index=True)
+    assessment_id = Column(
+        String(64),
+        ForeignKey("assessments.assessment_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    asset_id = Column(
+        String(64), ForeignKey("assets.asset_id", ondelete="CASCADE"), nullable=False, index=True
+    )
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     cwe = Column(String(64), nullable=True)
     cve = Column(String(64), nullable=True)
     severity = Column(String(32), nullable=False, default=Severity.MEDIUM.value, index=True)
     confidence = Column(Float, nullable=False, default=0.8)
-    verification_status = Column(String(32), nullable=False, default=VerificationStatus.UNVERIFIED.value, index=True)
+    verification_status = Column(
+        String(32), nullable=False, default=VerificationStatus.UNVERIFIED.value, index=True
+    )
     evidence_ids_json = Column(Text, nullable=False, default="[]")
     root_cause = Column(Text, nullable=True)
     remediation = Column(Text, nullable=False)
@@ -390,8 +449,12 @@ class FindingModel(Base):
             remediation=self.remediation,
             source_tool=self.source_tool,
             tool_version=self.tool_version,
-            first_seen=self.first_seen.replace(tzinfo=UTC) if self.first_seen and not self.first_seen.tzinfo else self.first_seen,
-            last_seen=self.last_seen.replace(tzinfo=UTC) if self.last_seen and not self.last_seen.tzinfo else self.last_seen,
+            first_seen=self.first_seen.replace(tzinfo=UTC)
+            if self.first_seen and not self.first_seen.tzinfo
+            else self.first_seen,
+            last_seen=self.last_seen.replace(tzinfo=UTC)
+            if self.last_seen and not self.last_seen.tzinfo
+            else self.last_seen,
             schema_version=self.schema_version,
         )
 
@@ -424,15 +487,23 @@ class JobModel(Base):
     SQLAlchemy ORM model for bounded worker and tool tasks.
     Maps to canonical `Job` domain contract.
     """
+
     __tablename__ = "jobs"
 
     job_id = Column(String(64), primary_key=True)
-    assessment_id = Column(String(64), ForeignKey("assessments.assessment_id", ondelete="CASCADE"), nullable=False, index=True)
+    assessment_id = Column(
+        String(64),
+        ForeignKey("assessments.assessment_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     task_type = Column(String(64), nullable=False, index=True)
     status = Column(String(32), nullable=False, default=JobStatus.CREATED.value, index=True)
     requested_targets_json = Column(Text, nullable=False, default="[]")
     target_input = Column(String(512), nullable=False)
-    permission_level = Column(String(32), nullable=False, default=TestPermissionLevel.PASSIVE_ONLY.value)
+    permission_level = Column(
+        String(32), nullable=False, default=TestPermissionLevel.PASSIVE_ONLY.value
+    )
     timeout_seconds = Column(Integer, nullable=False, default=180)
     max_retries = Column(Integer, nullable=False, default=2)
     retry_count = Column(Integer, nullable=False, default=0)
@@ -467,8 +538,16 @@ class JobModel(Base):
         self.error_message = val
 
     def to_domain(self) -> Job:
-        budget_data = json.loads(self.resource_budget_json) if self.resource_budget_json and self.resource_budget_json != "{}" else None
-        budget = ResourceBudget.model_validate(budget_data) if budget_data else ResourceBudget(timeout_seconds=self.timeout_seconds)
+        budget_data = (
+            json.loads(self.resource_budget_json)
+            if self.resource_budget_json and self.resource_budget_json != "{}"
+            else None
+        )
+        budget = (
+            ResourceBudget.model_validate(budget_data)
+            if budget_data
+            else ResourceBudget(timeout_seconds=self.timeout_seconds)
+        )
         audit_data = json.loads(self.audit_history_json) if self.audit_history_json else []
         audit_history = [JobAuditEntry.model_validate(e) for e in audit_data]
         result_data = json.loads(self.result_summary_json) if self.result_summary_json else None
@@ -491,9 +570,15 @@ class JobModel(Base):
             error_summary=self.error_message,
             result_summary=result_data,
             audit_history=audit_history,
-            created_at=self.created_at.replace(tzinfo=UTC) if self.created_at and not self.created_at.tzinfo else self.created_at,
-            started_at=self.started_at.replace(tzinfo=UTC) if self.started_at and not self.started_at.tzinfo else self.started_at,
-            completed_at=self.completed_at.replace(tzinfo=UTC) if self.completed_at and not self.completed_at.tzinfo else self.completed_at,
+            created_at=self.created_at.replace(tzinfo=UTC)
+            if self.created_at and not self.created_at.tzinfo
+            else self.created_at,
+            started_at=self.started_at.replace(tzinfo=UTC)
+            if self.started_at and not self.started_at.tzinfo
+            else self.started_at,
+            completed_at=self.completed_at.replace(tzinfo=UTC)
+            if self.completed_at and not self.completed_at.tzinfo
+            else self.completed_at,
             schema_version=self.schema_version,
         )
 
@@ -532,11 +617,19 @@ class AuditEventModel(Base):
     SQLAlchemy ORM model for append-only audit trail records.
     Maps to canonical `AuditEvent` domain contract.
     """
+
     __tablename__ = "audit_events"
 
     event_id = Column(String(64), primary_key=True)
-    assessment_id = Column(String(64), ForeignKey("assessments.assessment_id", ondelete="CASCADE"), nullable=False, index=True)
-    job_id = Column(String(64), ForeignKey("jobs.job_id", ondelete="SET NULL"), nullable=True, index=True)
+    assessment_id = Column(
+        String(64),
+        ForeignKey("assessments.assessment_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    job_id = Column(
+        String(64), ForeignKey("jobs.job_id", ondelete="SET NULL"), nullable=True, index=True
+    )
     event_type = Column(String(64), nullable=False, index=True)
     timestamp = Column(DateTime(timezone=True), nullable=False, default=_utc_now, index=True)
     actor = Column(String(128), nullable=False, default="system")
@@ -563,7 +656,9 @@ class AuditEventModel(Base):
             assessment_id=self.assessment_id,
             job_id=self.job_id,
             event_type=self.event_type,
-            timestamp=self.timestamp.replace(tzinfo=UTC) if self.timestamp and not self.timestamp.tzinfo else self.timestamp,
+            timestamp=self.timestamp.replace(tzinfo=UTC)
+            if self.timestamp and not self.timestamp.tzinfo
+            else self.timestamp,
             actor=self.actor,
             outcome=AuditOutcome(self.outcome),
             correlation_id=self.correlation_id,

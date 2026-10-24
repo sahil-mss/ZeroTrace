@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -26,7 +25,9 @@ class AuditRepository:
         # 2. Verify assessment exists
         assessment = self.session.get(AssessmentModel, event.assessment_id)
         if not assessment:
-            raise ValueError(f"Cannot record audit event: Assessment '{event.assessment_id}' does not exist.")
+            raise ValueError(
+                f"Cannot record audit event: Assessment '{event.assessment_id}' does not exist."
+            )
 
         # 3. If job_id is provided, verify job exists and belongs to the same assessment
         if event.job_id:
@@ -67,4 +68,3 @@ class AuditRepository:
             stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
-

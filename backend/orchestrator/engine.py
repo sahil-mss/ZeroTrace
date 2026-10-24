@@ -29,7 +29,9 @@ class OrchestratorEngine:
         self.evidence_store = evidence_store
         self.semaphore = asyncio.Semaphore(max_concurrency)
         self.active_tasks: dict[str, asyncio.Task] = {}
-        self.registered_task_handlers: dict[str, Callable[[Job, Assessment], Coroutine[Any, Any, dict[str, Any]]]] = {}
+        self.registered_task_handlers: dict[
+            str, Callable[[Job, Assessment], Coroutine[Any, Any, dict[str, Any]]]
+        ] = {}
 
     def register_task_handler(
         self,
@@ -97,7 +99,9 @@ class OrchestratorEngine:
         self.transition_job_status(job, JobStatus.CREATED, "Job instantiated")
 
         # 1. State: POLICY_CHECK
-        self.transition_job_status(job, JobStatus.POLICY_CHECK, "Verifying target scope and permissions")
+        self.transition_job_status(
+            job, JobStatus.POLICY_CHECK, "Verifying target scope and permissions"
+        )
 
         # Check target against assessment scope
         in_scope, scope_reason, _ = ScopeValidator.is_in_scope(target_input, assessment.scope)
@@ -121,7 +125,9 @@ class OrchestratorEngine:
             return job
 
         # Passed policy checks -> Enqueue
-        self.transition_job_status(job, JobStatus.QUEUED, "Passed policy checks; queued for execution")
+        self.transition_job_status(
+            job, JobStatus.QUEUED, "Passed policy checks; queued for execution"
+        )
         return job
 
     async def execute_job(self, job_id: str) -> Job:
@@ -162,7 +168,9 @@ class OrchestratorEngine:
                     timeout=float(job.timeout_seconds),
                 )
                 job.result_summary = result
-                self.transition_job_status(job, JobStatus.REVIEW, "Execution completed; reviewing results")
+                self.transition_job_status(
+                    job, JobStatus.REVIEW, "Execution completed; reviewing results"
+                )
                 self.transition_job_status(job, JobStatus.COMPLETED, "Job finished successfully")
             except asyncio.CancelledError:
                 job.error_message = "Job execution was cancelled by user or system"
@@ -197,7 +205,9 @@ class OrchestratorEngine:
         self.transition_job_status(job, JobStatus.CANCELLED, reason)
         return job
 
-    def cancel_assessment(self, assessment_id: str, reason: str = "User cancelled assessment") -> Assessment:
+    def cancel_assessment(
+        self, assessment_id: str, reason: str = "User cancelled assessment"
+    ) -> Assessment:
         """Immediately cancels an entire assessment and all its active/queued jobs."""
         assessment = self.db.get_assessment(assessment_id)
         if not assessment:
@@ -210,7 +220,12 @@ class OrchestratorEngine:
         # Cancel all jobs under this assessment
         jobs = self.db.list_jobs(assessment_id)
         for j in jobs:
-            if j.status in (JobStatus.CREATED, JobStatus.POLICY_CHECK, JobStatus.QUEUED, JobStatus.RUNNING):
+            if j.status in (
+                JobStatus.CREATED,
+                JobStatus.POLICY_CHECK,
+                JobStatus.QUEUED,
+                JobStatus.RUNNING,
+            ):
                 self.cancel_job(j.job_id, reason=f"Assessment cancelled: {reason}")
 
         self.db.record_audit_event(

@@ -212,7 +212,10 @@ class JobService:
         )
 
         assessment = self.assessment_repo.get(job.assessment_id)
-        if not assessment or assessment.lifecycle_status not in (AssessmentStatus.APPROVED, AssessmentStatus.ACTIVE):
+        if not assessment or assessment.lifecycle_status not in (
+            AssessmentStatus.APPROVED,
+            AssessmentStatus.ACTIVE,
+        ):
             err_msg = f"Assessment '{job.assessment_id}' is not in approved state."
             return self.fail_job(job.job_id, error_message=err_msg)
 
@@ -346,7 +349,9 @@ class JobService:
         self.session.commit()
         return job
 
-    def mark_job_for_review(self, job_id: str, findings_summary: dict[str, Any] | None = None) -> Job:
+    def mark_job_for_review(
+        self, job_id: str, findings_summary: dict[str, Any] | None = None
+    ) -> Job:
         """
         Transitions RUNNING job to REVIEW for operator verification of results.
         """
@@ -409,7 +414,9 @@ class JobService:
         job = self._get_job_or_fail(job_id)
 
         if job.cancellation_requested:
-            return self.request_cancellation(job_id, reason="Job completed with pending cancellation request")
+            return self.request_cancellation(
+                job_id, reason="Job completed with pending cancellation request"
+            )
 
         if result_summary and isinstance(result_summary, dict):
             current_summary = job.result_summary or {}

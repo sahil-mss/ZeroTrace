@@ -11,35 +11,60 @@ class Asset(BaseModel):
     """
     Canonical record of a discovered or configured resource within or adjacent to scope.
     """
+
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     asset_id: str = Field(default_factory=lambda: generate_id("asset"))
     assessment_id: str = Field(..., min_length=3)
     asset_type: AssetType = Field(...)
-    normalized_value: str = Field(..., min_length=1, alias="value", description="Standardized host, IP, or URL")
+    normalized_value: str = Field(
+        ..., min_length=1, alias="value", description="Standardized host, IP, or URL"
+    )
     scope_classification: ScopeStatus = Field(
         default=ScopeStatus.PENDING_REVIEW,
         alias="scope_status",
-        description="Scope verification determination"
+        description="Scope verification determination",
     )
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     source_evidence_ids: list[str] = Field(default_factory=list)
     is_inferred: bool = Field(
-        default=False,
-        description="True if asset was logically deduced; False if directly observed"
+        default=False, description="True if asset was logically deduced; False if directly observed"
     )
     directly_observed: bool = Field(
-        default=True,
-        description="Flag indicating direct tool or OSINT observation"
+        default=True, description="Flag indicating direct tool or OSINT observation"
     )
     relationships: dict[str, list[str]] = Field(
         default_factory=dict,
-        description="Associated graph relationships, e.g. {'subdomain_of': ['example.test']}"
+        description="Associated graph relationships, e.g. {'subdomain_of': ['example.test']}",
     )
     metadata: dict[str, Any] = Field(default_factory=dict)
     first_seen: datetime = Field(default_factory=utc_now, alias="first_observed")
     last_seen: datetime = Field(default_factory=utc_now, alias="last_observed")
     schema_version: str = Field(default="1.0", frozen=True)
+
+    @field_validator("asset_type", mode="before")
+    @classmethod
+    def normalize_asset_type(cls, v: object) -> object:
+        if hasattr(v, "value"):
+            v = v.value
+        if isinstance(v, str):
+            v_upper = v.strip().upper()
+            mapping = {
+                "DOMAIN": AssetType.DOMAIN,
+                "SUBDOMAIN": AssetType.SUBDOMAIN,
+                "IP": AssetType.IP_ADDRESS,
+                "IP_ADDRESS": AssetType.IP_ADDRESS,
+                "WEB_APP": AssetType.WEB_APPLICATION,
+                "WEB_APPLICATION": AssetType.WEB_APPLICATION,
+                "SERVICE": AssetType.SERVICE,
+                "API_ENDPOINT": AssetType.WEB_APPLICATION,
+                "URL": AssetType.URL,
+            }
+            if v_upper in mapping:
+                return mapping[v_upper]
+            if v_upper in AssetType.__members__:
+                return AssetType[v_upper]
+        return v
 
     @field_validator("confidence")
     @classmethod

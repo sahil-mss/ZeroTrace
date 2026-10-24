@@ -32,6 +32,8 @@ from modules.osint.contracts import (
     CancellationToken,
     OSINTCollectionContext,
 )
+from modules.osint.crtsh_adapter import CertificateTransparencyAdapter
+from modules.osint.dns_adapter import DNSMetadataAdapter
 from modules.osint.mock_adapter import MockOSINTAdapter
 
 logger = logging.getLogger("zerotrace.osint.service")
@@ -76,7 +78,13 @@ class OSINTCollectionService:
             self._adapters: dict[str, BaseOSINTAdapter] = {a.adapter_name: a for a in adapters}
         else:
             mock = MockOSINTAdapter()
-            self._adapters = {mock.adapter_name: mock}
+            dns_adapter = DNSMetadataAdapter()
+            ct_adapter = CertificateTransparencyAdapter()
+            self._adapters = {
+                mock.adapter_name: mock,
+                dns_adapter.adapter_name: dns_adapter,
+                ct_adapter.adapter_name: ct_adapter,
+            }
 
     def register_adapter(self, adapter: BaseOSINTAdapter) -> None:
         """Dynamically registers or updates an OSINT source adapter."""
@@ -113,7 +121,9 @@ class OSINTCollectionService:
                 assessment_id=assessment_id,
                 event_type="OSINT_COLLECTION_DENIED",
                 outcome=AuditOutcome.DENIED,
-                metadata={"reason": f"Assessment lifecycle status is {assessment.lifecycle_status.value}"},
+                metadata={
+                    "reason": f"Assessment lifecycle status is {assessment.lifecycle_status.value}"
+                },
             )
             raise ValueError(
                 f"Assessment '{assessment_id}' is not approved (status: {assessment.lifecycle_status.value})."
@@ -158,7 +168,9 @@ class OSINTCollectionService:
                         targets_to_query.append(clean)
 
         if not targets_to_query:
-            raise ValueError(f"Assessment '{assessment_id}' has no approved targets configured in scope.")
+            raise ValueError(
+                f"Assessment '{assessment_id}' has no approved targets configured in scope."
+            )
 
         # 3. Select Enabled Adapters with Approved Permission Levels
         selected_adapters: list[BaseOSINTAdapter] = []
@@ -177,7 +189,9 @@ class OSINTCollectionService:
             selected_adapters.append(adapter)
 
         if not selected_adapters:
-            raise ValueError(f"No enabled, authorized OSINT adapters found for assessment '{assessment_id}'.")
+            raise ValueError(
+                f"No enabled, authorized OSINT adapters found for assessment '{assessment_id}'."
+            )
 
         # Record start audit event
         self._log_audit(
@@ -243,7 +257,11 @@ class OSINTCollectionService:
                             assessment_id=assessment_id,
                             event_type="OSINT_ADAPTER_ERROR",
                             outcome=AuditOutcome.FAILURE,
-                            metadata={"adapter": adapter.adapter_name, "target": current_target, "error": err_msg},
+                            metadata={
+                                "adapter": adapter.adapter_name,
+                                "target": current_target,
+                                "error": err_msg,
+                            },
                         )
                         continue
 
@@ -263,7 +281,9 @@ class OSINTCollectionService:
                                 tool_version=adapter.adapter_version,
                                 collected_at=obs.collected_at,
                             )
-                            saved_evidence, evi_is_new = self.evidence_service.ingest_observation(evi_obs)
+                            saved_evidence, evi_is_new = self.evidence_service.ingest_observation(
+                                evi_obs
+                            )
                             if evi_is_new:
                                 summary.evidence_records_created += 1
                             else:
@@ -318,9 +338,15 @@ class OSINTCollectionService:
 
         # Final Status Calculation
         if summary.status != "CANCELLED":
-            if summary.errors and (summary.new_assets_created > 0 or summary.evidence_records_created > 0):
+            if summary.errors and (
+                summary.new_assets_created > 0 or summary.evidence_records_created > 0
+            ):
                 summary.status = "PARTIAL_FAILURE"
-            elif summary.errors and summary.new_assets_created == 0 and summary.evidence_records_created == 0:
+            elif (
+                summary.errors
+                and summary.new_assets_created == 0
+                and summary.evidence_records_created == 0
+            ):
                 summary.status = "FAILED"
             else:
                 summary.status = "COMPLETED"

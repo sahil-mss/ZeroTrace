@@ -133,7 +133,10 @@ def test_url_normalization():
     assert normalize_url("https://example.test:8443/admin") == "https://example.test:8443/admin"
 
     # Path traversal normalization and trailing slash preservation
-    assert normalize_url("https://example.test/api/v1/../../etc/passwd") == "https://example.test/etc/passwd"
+    assert (
+        normalize_url("https://example.test/api/v1/../../etc/passwd")
+        == "https://example.test/etc/passwd"
+    )
     assert normalize_url("https://example.test/api/v1/../v2/") == "https://example.test/api/v2/"
 
     # Query parameters canonical sorting
@@ -172,7 +175,9 @@ def test_canonical_json_and_stable_hashing():
 # -----------------------------------------------------------------------------
 
 
-def test_evidence_ingestion_and_idempotent_deduplication(db_session: Session, test_assessment: Assessment):
+def test_evidence_ingestion_and_idempotent_deduplication(
+    db_session: Session, test_assessment: Assessment
+):
     evidence_service = EvidenceService(session=db_session)
 
     obs = EvidenceObservation(
@@ -335,7 +340,9 @@ def test_raw_blob_evidence_storage(db_session: Session, test_assessment: Assessm
 # -----------------------------------------------------------------------------
 
 
-def test_asset_registration_and_scope_classification(db_session: Session, test_assessment: Assessment):
+def test_asset_registration_and_scope_classification(
+    db_session: Session, test_assessment: Assessment
+):
     asset_service = AssetService(session=db_session)
 
     # 1. In-scope target -> IN_SCOPE
@@ -389,7 +396,9 @@ def test_out_of_scope_asset_never_upgraded_by_later_observation(
     assert asset2.confidence == 1.0
 
 
-def test_asset_deduplication_and_timestamp_updates(db_session: Session, test_assessment: Assessment):
+def test_asset_deduplication_and_timestamp_updates(
+    db_session: Session, test_assessment: Assessment
+):
     asset_service = AssetService(session=db_session)
 
     t1 = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
@@ -417,7 +426,7 @@ def test_asset_deduplication_and_timestamp_updates(db_session: Session, test_ass
     assert is_new2 is False
     assert asset2.asset_id == asset1.asset_id
     assert asset2.first_seen == t1  # First seen preserved
-    assert asset2.last_seen == t2   # Last seen updated
+    assert asset2.last_seen == t2  # Last seen updated
 
     # Merged relationships
     assert "parent" in asset2.relationships

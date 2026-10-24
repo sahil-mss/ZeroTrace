@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -108,7 +107,6 @@ class JobRepository:
             stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
-
 
     def get_by_idempotency_key(self, assessment_id: str, idempotency_key: str) -> Job | None:
         """Finds a job within an assessment by caller idempotency key."""

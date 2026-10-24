@@ -13,20 +13,25 @@ class AuditEvent(BaseModel):
     Append-only immutable audit trail record for compliance, non-repudiation,
     and security policy verification.
     """
+
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     event_id: str = Field(default_factory=lambda: generate_id("evt"))
     assessment_id: str = Field(..., min_length=3)
     job_id: str | None = None
-    event_type: str = Field(..., min_length=2, description="Categorical event code (e.g. 'SCOPE_CHECK_REJECTED')")
+    event_type: str = Field(
+        ..., min_length=2, description="Categorical event code (e.g. 'SCOPE_CHECK_REJECTED')"
+    )
     timestamp: datetime = Field(default_factory=utc_now)
-    actor: str = Field(default="system", min_length=1, description="Operator username or automated component")
+    actor: str = Field(
+        default="system", min_length=1, description="Operator username or automated component"
+    )
     outcome: AuditOutcome = Field(default=AuditOutcome.SUCCESS)
     correlation_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
     sanitized_metadata: dict[str, Any] = Field(
         default_factory=dict,
         alias="details",
-        description="Structured operational context with credentials automatically redacted"
+        description="Structured operational context with credentials automatically redacted",
     )
     schema_version: str = Field(default="1.0", frozen=True)
 

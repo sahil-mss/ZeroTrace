@@ -21,7 +21,9 @@ def _set_sqlite_pragma(dbapi_connection, connection_record):
 def get_engine(db_url: str | None = None, echo: bool = False) -> Engine:
     """Creates a configured SQLAlchemy Engine reading from config or argument."""
     url = db_url or settings.DATABASE_URL
-    if url.startswith("sqlite:///./") or (url.startswith("sqlite:///") and not url.startswith("sqlite:///:memory:")):
+    if url.startswith("sqlite:///./") or (
+        url.startswith("sqlite:///") and not url.startswith("sqlite:///:memory:")
+    ):
         clean_path = url.replace("sqlite:///", "")
         parent_dir = Path(clean_path).parent
         if parent_dir and not parent_dir.exists():

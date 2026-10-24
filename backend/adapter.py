@@ -1,6 +1,6 @@
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Any
 
 from schemas.contracts import (
     Assessment,
@@ -41,7 +41,7 @@ class UpstreamNormalizer:
         return get_utc_now()
 
     @classmethod
-    def normalize_assessment(cls, raw: Dict[str, Any]) -> Assessment:
+    def normalize_assessment(cls, raw: dict[str, Any]) -> Assessment:
         """
         Normalizes upstream assessment representation.
         Handles both Person 1 schema ('assessment_id', 'title', 'scope.target_urls')
@@ -83,7 +83,9 @@ class UpstreamNormalizer:
         status = status_map.get(raw_status, AssessmentStatus.PENDING)
 
         created_at = cls.parse_datetime(raw.get("created_at"))
-        completed_at = cls.parse_datetime(raw.get("completed_at")) if raw.get("completed_at") else None
+        completed_at = (
+            cls.parse_datetime(raw.get("completed_at")) if raw.get("completed_at") else None
+        )
 
         return Assessment(
             id=aid,
@@ -95,7 +97,9 @@ class UpstreamNormalizer:
         )
 
     @classmethod
-    def normalize_asset(cls, raw: Dict[str, Any], fallback_assessment_id: str = "assess_unknown") -> Asset:
+    def normalize_asset(
+        cls, raw: dict[str, Any], fallback_assessment_id: str = "assess_unknown"
+    ) -> Asset:
         """
         Normalizes upstream OSINT or port scan asset records.
         Maps Person 1 'value'/'asset_id' or scanner output into shared Asset.
@@ -104,7 +108,12 @@ class UpstreamNormalizer:
         assessment_id = raw.get("assessment_id") or fallback_assessment_id
 
         # Target hostname or address
-        host_val = raw.get("hostname_or_address") or raw.get("value") or raw.get("target") or "unknown_host"
+        host_val = (
+            raw.get("hostname_or_address")
+            or raw.get("value")
+            or raw.get("target")
+            or "unknown_host"
+        )
 
         # Classify asset type
         raw_type = str(raw.get("asset_type", "")).upper()
@@ -115,13 +124,15 @@ class UpstreamNormalizer:
             "IP": AssetType.IP,
             "WEB_APPLICATION": AssetType.WEB_APP,
             "WEB_APP": AssetType.WEB_APP,
-            "URL": AssetType.API_ENDPOINT if "/api/" in host_val or "/rest/" in host_val else AssetType.WEB_APP,
+            "URL": AssetType.API_ENDPOINT
+            if "/api/" in host_val or "/rest/" in host_val
+            else AssetType.WEB_APP,
             "SERVICE": AssetType.SERVICE,
         }
         asset_type = type_map.get(raw_type, AssetType.OTHER)
 
         # Parse services if present in metadata or fields
-        discovered_services: List[DiscoveredService] = []
+        discovered_services: list[DiscoveredService] = []
         if isinstance(raw.get("discovered_services"), list):
             for svc in raw["discovered_services"]:
                 if isinstance(svc, dict) and "port" in svc:
@@ -135,9 +146,7 @@ class UpstreamNormalizer:
                     )
         elif isinstance(raw.get("metadata"), dict) and "open_ports" in raw["metadata"]:
             for port in raw["metadata"]["open_ports"]:
-                discovered_services.append(
-                    DiscoveredService(port=int(port), protocol="tcp")
-                )
+                discovered_services.append(DiscoveredService(port=int(port), protocol="tcp"))
 
         source = raw.get("source") or raw.get("source_type") or "osint_module"
         observed_at = cls.parse_datetime(raw.get("first_observed") or raw.get("observed_at"))
@@ -153,20 +162,26 @@ class UpstreamNormalizer:
         )
 
     @classmethod
-    def normalize_evidence(cls, raw: Dict[str, Any], fallback_assessment_id: str = "assess_unknown") -> Evidence:
+    def normalize_evidence(
+        cls, raw: dict[str, Any], fallback_assessment_id: str = "assess_unknown"
+    ) -> Evidence:
         """
         Normalizes upstream evidence store records.
         Preserves cryptographic SHA-256 hashes, artifact locations, and raw dumps.
         """
         evidence_id = raw.get("evidence_id") or raw.get("id") or "evi_unknown"
-        source = raw.get("tool_name") or raw.get("source") or raw.get("source_type") or "unknown_tool"
+        source = (
+            raw.get("tool_name") or raw.get("source") or raw.get("source_type") or "unknown_tool"
+        )
 
         # Build clear description
         desc = raw.get("description")
         if not desc and isinstance(raw.get("data"), dict):
             # Serialize concise snippet of structured data
             data_dict = raw["data"]
-            desc = f"Evidence from {source}: " + ", ".join(f"{k}={v}" for k, v in list(data_dict.items())[:3])
+            desc = f"Evidence from {source}: " + ", ".join(
+                f"{k}={v}" for k, v in list(data_dict.items())[:3]
+            )
         elif not desc:
             desc = f"Observation collected by {source}"
 
@@ -178,6 +193,7 @@ class UpstreamNormalizer:
         raw_data = raw.get("raw_data")
         if not raw_data and isinstance(raw.get("data"), dict):
             import json
+
             raw_data = json.dumps(raw["data"], indent=2)
 
         return Evidence(
@@ -191,7 +207,9 @@ class UpstreamNormalizer:
         )
 
     @classmethod
-    def normalize_finding(cls, raw: Dict[str, Any], fallback_assessment_id: str = "assess_unknown") -> Finding:
+    def normalize_finding(
+        cls, raw: dict[str, Any], fallback_assessment_id: str = "assess_unknown"
+    ) -> Finding:
         """
         Normalizes upstream scanner and OSINT findings into shared Finding contract.
         Handles Person 1 ('finding_id', 'evidence_ids', float 'confidence')
@@ -253,7 +271,9 @@ class UpstreamNormalizer:
 
         # Enforce contract integrity: Cannot be CONFIRMED with zero evidence
         if verification_status == VerificationStatus.CONFIRMED and not evidence_references:
-            logger.warning(f"Finding {fid} claimed CONFIRMED without evidence. Demoting to UNVERIFIED.")
+            logger.warning(
+                f"Finding {fid} claimed CONFIRMED without evidence. Demoting to UNVERIFIED."
+            )
             verification_status = VerificationStatus.UNVERIFIED
             confidence = ConfidenceLevel.LOW
 
@@ -293,12 +313,13 @@ class UpstreamAssessmentClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
 
-    def check_health(self) -> Dict[str, Any]:
+    def check_health(self) -> dict[str, Any]:
         """
         Polls backend health status.
         Returns honest status: 'connected', 'pending', or 'not_connected'.
         """
         import httpx
+
         try:
             r = httpx.get(f"{self.base_url}/health", timeout=self.timeout)
             if r.status_code == 200:
@@ -322,14 +343,14 @@ class UpstreamAssessmentClient:
 
     def fetch_assessment_data(
         self, assessment_id: str
-    ) -> Tuple[Optional[Assessment], List[Asset], List[Finding], List[Evidence], Dict[str, str]]:
+    ) -> tuple[Assessment | None, list[Asset], list[Finding], list[Evidence], dict[str, str]]:
         """
         Retrieves all available results for an assessment from upstream endpoints.
         Returns: (assessment, assets, findings, evidence, module_statuses)
         """
         import httpx
 
-        module_statuses: Dict[str, str] = {
+        module_statuses: dict[str, str] = {
             "orchestrator": "not_connected",
             "osint": "not_connected",
             "scanners": "not_connected",
@@ -341,12 +362,12 @@ class UpstreamAssessmentClient:
                 r_assess = client.get(f"/assessments/{assessment_id}")
                 if r_assess.status_code != 200:
                     return None, [], [], [], module_statuses
-                
+
                 module_statuses["orchestrator"] = "connected"
                 assessment = UpstreamNormalizer.normalize_assessment(r_assess.json())
 
                 # 2. Fetch assets
-                assets: List[Asset] = []
+                assets: list[Asset] = []
                 r_assets = client.get(f"/assessments/{assessment_id}/assets")
                 if r_assets.status_code == 200:
                     module_statuses["osint"] = "connected"
@@ -356,14 +377,14 @@ class UpstreamAssessmentClient:
                     module_statuses["osint"] = "failed"
 
                 # 3. Fetch evidence
-                evidence: List[Evidence] = []
+                evidence: list[Evidence] = []
                 r_evi = client.get(f"/assessments/{assessment_id}/evidence")
                 if r_evi.status_code == 200:
                     for raw_e in r_evi.json():
                         evidence.append(UpstreamNormalizer.normalize_evidence(raw_e, assessment_id))
 
                 # 4. Fetch findings
-                findings: List[Finding] = []
+                findings: list[Finding] = []
                 r_fnd = client.get(f"/assessments/{assessment_id}/findings")
                 if r_fnd.status_code == 200:
                     module_statuses["scanners"] = "connected"

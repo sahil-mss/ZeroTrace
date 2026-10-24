@@ -1,10 +1,3 @@
-from schemas.enums import (
-    AssessmentStatus,
-    AssetType,
-    ConfidenceLevel,
-    FindingSeverity,
-    VerificationStatus,
-)
 from schemas.contracts import (
     AIAnalysis,
     Assessment,
@@ -12,6 +5,13 @@ from schemas.contracts import (
     DiscoveredService,
     Evidence,
     Finding,
+)
+from schemas.enums import (
+    AssessmentStatus,
+    AssetType,
+    ConfidenceLevel,
+    FindingSeverity,
+    VerificationStatus,
 )
 
 __all__ = [

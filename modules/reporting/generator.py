@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
+
 from pydantic import BaseModel, Field
 
 from schemas.contracts import AIAnalysis, Assessment, Asset, Evidence, Finding
@@ -11,13 +11,13 @@ class ReportFindingEntry(BaseModel):
     title: str
     severity: FindingSeverity
     verification_status: VerificationStatus
-    cwe: Optional[str]
-    cve: Optional[str]
+    cwe: str | None
+    cve: str | None
     description: str
     remediation: str
-    evidence_ids: List[str]
-    ai_summary: Optional[str] = None
-    ai_reasoning: Optional[str] = None
+    evidence_ids: list[str]
+    ai_summary: str | None = None
+    ai_reasoning: str | None = None
 
 
 class AssessmentReport(BaseModel):
@@ -25,14 +25,14 @@ class AssessmentReport(BaseModel):
     assessment_name: str
     target: str
     scope_policy: str
-    generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     executive_summary: str
-    severity_breakdown: Dict[str, int]
+    severity_breakdown: dict[str, int]
     total_assets: int
     total_findings: int
     verified_findings_count: int
-    findings: List[ReportFindingEntry]
-    remediation_roadmap: List[str]
+    findings: list[ReportFindingEntry]
+    remediation_roadmap: list[str]
 
 
 class ReportGenerator:
@@ -44,15 +44,15 @@ class ReportGenerator:
     def generate(
         self,
         assessment: Assessment,
-        assets: List[Asset],
-        findings: List[Finding],
-        evidence: List[Evidence],
-        ai_analyses: Optional[Dict[str, AIAnalysis]] = None,
+        assets: list[Asset],
+        findings: list[Finding],
+        evidence: list[Evidence],
+        ai_analyses: dict[str, AIAnalysis] | None = None,
     ) -> AssessmentReport:
         ai_analyses = ai_analyses or {}
 
         # Severity breakdown
-        counts: Dict[str, int] = {
+        counts: dict[str, int] = {
             "critical": 0,
             "high": 0,
             "medium": 0,
@@ -80,8 +80,8 @@ class ReportGenerator:
         )
 
         # Build entries
-        entries: List[ReportFindingEntry] = []
-        roadmap: List[str] = []
+        entries: list[ReportFindingEntry] = []
+        roadmap: list[str] = []
 
         for f in findings:
             analysis = ai_analyses.get(f.id)
@@ -109,7 +109,9 @@ class ReportGenerator:
 
             # Prioritize roadmap based on severity
             if f.severity in (FindingSeverity.CRITICAL, FindingSeverity.HIGH):
-                roadmap.append(f"[IMMEDIATE PRIORITY] {f.title}: {remediation_text.splitlines()[0]}")
+                roadmap.append(
+                    f"[IMMEDIATE PRIORITY] {f.title}: {remediation_text.splitlines()[0]}"
+                )
             else:
                 roadmap.append(f"[SCHEDULED DEFENSE] {f.title}: {remediation_text.splitlines()[0]}")
 

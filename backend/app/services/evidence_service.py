@@ -136,7 +136,9 @@ class EvidenceService:
         # 1. Validate Assessment Reference
         assessment = self.session.get(AssessmentModel, observation.assessment_id)
         if not assessment:
-            raise ValueError(f"Cannot store evidence: Assessment '{observation.assessment_id}' does not exist.")
+            raise ValueError(
+                f"Cannot store evidence: Assessment '{observation.assessment_id}' does not exist."
+            )
 
         # 2. Validate Asset Reference and Boundary
         if observation.asset_id:

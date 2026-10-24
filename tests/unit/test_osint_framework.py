@@ -118,7 +118,9 @@ async def test_successful_mock_collection(db_session: Session, active_assessment
 
 
 @pytest.mark.asyncio
-async def test_duplicate_observations_idempotency(db_session: Session, active_assessment: Assessment):
+async def test_duplicate_observations_idempotency(
+    db_session: Session, active_assessment: Assessment
+):
     """
     Verifies that running repeated collections on the same target does not duplicate records:
     - Evidence records are deduplicated.
@@ -229,7 +231,9 @@ async def test_partial_source_failure(db_session: Session, active_assessment: As
 
 
 @pytest.mark.asyncio
-async def test_scope_rejection_for_unauthorized_target(db_session: Session, active_assessment: Assessment):
+async def test_scope_rejection_for_unauthorized_target(
+    db_session: Session, active_assessment: Assessment
+):
     """
     Verifies that targeting an unauthorized asset fails closed before any adapter is invoked.
     """

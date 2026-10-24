@@ -1,11 +1,12 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 import pytest
 
 from modules.ai.analyst import FindingAnalyst
 from modules.ai.planner import SafeTestPlanner
-from modules.reporting.generator import ReportGenerator
 from modules.reporting.exporter import ReportExporter
+from modules.reporting.generator import ReportGenerator
 from schemas.contracts import Assessment, Asset, Evidence, Finding
 from schemas.enums import (
     AssessmentStatus,
@@ -18,7 +19,7 @@ from schemas.enums import (
 
 @pytest.fixture
 def sample_data():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     assessment = Assessment(
         id="asm_test_01",
         name="Lab Juice Shop Audit",
@@ -41,7 +42,7 @@ def sample_data():
         description="Union query returned administrative email in response body",
         observed_at=now,
         asset_id="ast_web_01",
-        raw_data="HTTP 200 OK\n[{\"id\":1,\"email\":\"admin@test.local\"}]",
+        raw_data='HTTP 200 OK\n[{"id":1,"email":"admin@test.local"}]',
     )
 
     finding = Finding(

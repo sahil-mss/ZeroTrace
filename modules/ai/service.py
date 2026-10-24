@@ -1,5 +1,4 @@
 import logging
-from typing import List, Optional
 
 from modules.ai.adapter import BaseModelAdapter, DeterministicFallbackAdapter, RemoteLLMAdapter
 from modules.ai.config import AIConfig
@@ -14,7 +13,7 @@ class AIAnalysisService:
     Manages adapter selection, config ingestion, and fallback reliability.
     """
 
-    def __init__(self, config: Optional[AIConfig] = None, adapter: Optional[BaseModelAdapter] = None):
+    def __init__(self, config: AIConfig | None = None, adapter: BaseModelAdapter | None = None):
         self.config = config or AIConfig()
         if adapter:
             self.adapter = adapter
@@ -23,7 +22,7 @@ class AIAnalysisService:
         else:
             self.adapter = RemoteLLMAdapter(config=self.config)
 
-    def analyze_finding(self, finding: Finding, evidence_records: List[Evidence]) -> AIAnalysis:
+    def analyze_finding(self, finding: Finding, evidence_records: list[Evidence]) -> AIAnalysis:
         """
         Analyze a finding against its available evidence records.
         Guarantees validated, structured, safe output.

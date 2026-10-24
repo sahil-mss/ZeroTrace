@@ -241,8 +241,22 @@ def test_evidence_integrity_and_cross_assessment_validation(temp_db):
 
     # Create two assessments
     a_repo = AssessmentRepository(session)
-    a_repo.create(Assessment(assessment_id="assess_a", name="Assessment Alpha", organization_name="OrgAlpha", authorized_by="Alice"))
-    a_repo.create(Assessment(assessment_id="assess_b", name="Assessment Beta", organization_name="OrgBeta", authorized_by="Bob"))
+    a_repo.create(
+        Assessment(
+            assessment_id="assess_a",
+            name="Assessment Alpha",
+            organization_name="OrgAlpha",
+            authorized_by="Alice",
+        )
+    )
+    a_repo.create(
+        Assessment(
+            assessment_id="assess_b",
+            name="Assessment Beta",
+            organization_name="OrgBeta",
+            authorized_by="Bob",
+        )
+    )
 
     # Create asset in assessment A
     asset_repo = AssetRepository(session)
@@ -300,7 +314,14 @@ def test_finding_integrity_and_provenance_validation(temp_db):
 
     # Setup assessment, asset, and evidence
     assess_repo = AssessmentRepository(session)
-    assess_repo.create(Assessment(assessment_id="assess_f", name="Assessment Finding", organization_name="OrgFinding", authorized_by="Alice"))
+    assess_repo.create(
+        Assessment(
+            assessment_id="assess_f",
+            name="Assessment Finding",
+            organization_name="OrgFinding",
+            authorized_by="Alice",
+        )
+    )
 
     asset_repo = AssetRepository(session)
     asset = asset_repo.create(
@@ -381,7 +402,14 @@ def test_job_persistence_and_atomic_state_transitions(temp_db):
     session = factory()
 
     assess_repo = AssessmentRepository(session)
-    assess_repo.create(Assessment(assessment_id="assess_job", name="Assessment Job", organization_name="OrgJob", authorized_by="Alice"))
+    assess_repo.create(
+        Assessment(
+            assessment_id="assess_job",
+            name="Assessment Job",
+            organization_name="OrgJob",
+            authorized_by="Alice",
+        )
+    )
     session.commit()
 
     job_repo = JobRepository(session)
@@ -397,7 +425,9 @@ def test_job_persistence_and_atomic_state_transitions(temp_db):
     session.commit()
 
     # Transition to RUNNING
-    running_job = job_repo.update_status("job_001", JobStatus.RUNNING, reason="Worker acquired lock")
+    running_job = job_repo.update_status(
+        "job_001", JobStatus.RUNNING, reason="Worker acquired lock"
+    )
     session.commit()
     assert running_job.status == JobStatus.RUNNING
     assert running_job.started_at is not None
@@ -406,7 +436,9 @@ def test_job_persistence_and_atomic_state_transitions(temp_db):
     assert running_job.audit_history[0].to_status == JobStatus.RUNNING
 
     # Transition to COMPLETED
-    completed_job = job_repo.update_status("job_001", JobStatus.COMPLETED, reason="DNS enumeration complete")
+    completed_job = job_repo.update_status(
+        "job_001", JobStatus.COMPLETED, reason="DNS enumeration complete"
+    )
     session.commit()
     assert completed_job.status == JobStatus.COMPLETED
     assert completed_job.completed_at is not None
@@ -420,7 +452,14 @@ def test_audit_event_append_only_immutability(temp_db):
     session = factory()
 
     assess_repo = AssessmentRepository(session)
-    assess_repo.create(Assessment(assessment_id="assess_audit", name="Assessment Audit", organization_name="OrgAudit", authorized_by="Alice"))
+    assess_repo.create(
+        Assessment(
+            assessment_id="assess_audit",
+            name="Assessment Audit",
+            organization_name="OrgAudit",
+            authorized_by="Alice",
+        )
+    )
     session.commit()
 
     audit_repo = AuditRepository(session)
@@ -469,11 +508,21 @@ def test_alembic_clean_migration_execution(temp_db):
     # Verify tables were created
     fresh_engine = get_engine(fresh_url)
     with fresh_engine.connect() as conn:
-        tables = conn.execute(
-            text("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-        ).scalars().all()
+        tables = (
+            conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"))
+            .scalars()
+            .all()
+        )
 
-        expected = ["alembic_version", "assessments", "assets", "audit_events", "evidence", "findings", "jobs"]
+        expected = [
+            "alembic_version",
+            "assessments",
+            "assets",
+            "audit_events",
+            "evidence",
+            "findings",
+            "jobs",
+        ]
         for exp in expected:
             assert exp in tables, f"Expected table '{exp}' to be created by Alembic migration!"
 

@@ -483,7 +483,9 @@ def test_validate_resolved_ip():
     rules = [
         ScopeRule(target_type=TargetType.IP_ADDRESS, target_value="10.0.0.1"),
         ScopeRule(target_type=TargetType.CIDR, target_value="192.168.100.0/24"),
-        ScopeRule(target_type=TargetType.IP_ADDRESS, target_value="192.168.100.99", is_excluded=True),
+        ScopeRule(
+            target_type=TargetType.IP_ADDRESS, target_value="192.168.100.99", is_excluded=True
+        ),
     ]
     assessment = Assessment(
         assessment_id="assess_resolved_ip",
@@ -518,7 +520,9 @@ def test_validate_resolved_ip():
 def test_ipv6_input_and_brackets():
     """IPv6 addresses (bracketed with port and unbracketed) are handled safely."""
     rules = [
-        ScopeRule(target_type=TargetType.IP_ADDRESS, target_value="2001:db8::1", approved_ports=[8080]),
+        ScopeRule(
+            target_type=TargetType.IP_ADDRESS, target_value="2001:db8::1", approved_ports=[8080]
+        ),
         ScopeRule(target_type=TargetType.CIDR, target_value="2001:db8:acad::/48"),
     ]
     assessment = Assessment(

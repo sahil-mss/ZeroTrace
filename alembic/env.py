@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 # Import all models to ensure metadata is fully populated
@@ -20,6 +21,9 @@ target_metadata = Base.metadata
 
 
 def get_url() -> str:
+    env_url = os.environ.get("DATABASE_URL")
+    if env_url:
+        return env_url
     url = config.get_main_option("sqlalchemy.url")
     return url if url and not url.startswith("driver://") else settings.DATABASE_URL
 

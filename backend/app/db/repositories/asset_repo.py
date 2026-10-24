@@ -18,7 +18,9 @@ class AssetRepository:
         # Verify assessment exists
         assessment = self.session.get(AssessmentModel, asset.assessment_id)
         if not assessment:
-            raise ValueError(f"Cannot create asset: Assessment {asset.assessment_id} does not exist.")
+            raise ValueError(
+                f"Cannot create asset: Assessment {asset.assessment_id} does not exist."
+            )
 
         model = AssetModel.from_domain(asset)
         self.session.add(model)
@@ -33,7 +35,9 @@ class AssetRepository:
         # Verify assessment exists
         assessment = self.session.get(AssessmentModel, asset.assessment_id)
         if not assessment:
-            raise ValueError(f"Cannot upsert asset: Assessment {asset.assessment_id} does not exist.")
+            raise ValueError(
+                f"Cannot upsert asset: Assessment {asset.assessment_id} does not exist."
+            )
 
         existing = self.get_by_value(asset.assessment_id, asset.normalized_value)
         if existing:
@@ -43,7 +47,10 @@ class AssetRepository:
                 model.last_seen = asset.last_seen
                 model.confidence = max(model.confidence, asset.confidence)
                 # Never change an out-of-scope asset into an approved/in-scope one simply because another source reports it
-                if model.scope_classification == ScopeStatus.OUT_OF_SCOPE.value and asset.scope_classification.value == ScopeStatus.IN_SCOPE.value:
+                if (
+                    model.scope_classification == ScopeStatus.OUT_OF_SCOPE.value
+                    and asset.scope_classification.value == ScopeStatus.IN_SCOPE.value
+                ):
                     pass  # Keep OUT_OF_SCOPE
                 else:
                     model.scope_classification = asset.scope_classification.value
@@ -55,7 +62,9 @@ class AssetRepository:
                     model.metadata_json = json.dumps(existing_meta)
 
                 # Merge relationships
-                existing_rels = json.loads(model.relationships_json) if model.relationships_json else {}
+                existing_rels = (
+                    json.loads(model.relationships_json) if model.relationships_json else {}
+                )
                 for k, v in asset.relationships.items():
                     existing_rels.setdefault(k, [])
                     for item in v:
@@ -64,7 +73,11 @@ class AssetRepository:
                 model.relationships_json = json.dumps(existing_rels)
 
                 # Merge source evidence IDs
-                existing_evidence = json.loads(model.source_evidence_ids_json) if model.source_evidence_ids_json else []
+                existing_evidence = (
+                    json.loads(model.source_evidence_ids_json)
+                    if model.source_evidence_ids_json
+                    else []
+                )
                 for eid in asset.source_evidence_ids:
                     if eid not in existing_evidence:
                         existing_evidence.append(eid)
@@ -122,4 +135,3 @@ class AssetRepository:
             stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
-

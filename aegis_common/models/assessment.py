@@ -13,26 +13,24 @@ class ScopeRule(BaseModel):
     Represents an explicitly approved target boundary.
     Defaults to the narrowest reasonable permission; subdomains are never auto-authorized.
     """
+
     model_config = ConfigDict(extra="forbid")
 
     rule_id: str = Field(default_factory=lambda: generate_id("rule"))
     target_type: TargetType = Field(..., description="Classification of target boundary")
     target_value: str = Field(..., min_length=1, description="Host, IP, CIDR, or URL")
     approved_ports: list[int] = Field(
-        default_factory=list,
-        description="Explicitly approved TCP/UDP ports (e.g. [80, 443])"
+        default_factory=list, description="Explicitly approved TCP/UDP ports (e.g. [80, 443])"
     )
     permitted_path_prefixes: list[str] = Field(
-        default_factory=list,
-        description="Explicitly permitted URL paths (e.g. ['/api', '/v1'])"
+        default_factory=list, description="Explicitly permitted URL paths (e.g. ['/api', '/v1'])"
     )
     include_subdomains: bool = Field(
         default=False,
-        description="Must be explicitly True to authorize subdomains. Defaults to False."
+        description="Must be explicitly True to authorize subdomains. Defaults to False.",
     )
     is_excluded: bool = Field(
-        default=False,
-        description="If True, acts as a hard deny exclusion rule."
+        default=False, description="If True, acts as a hard deny exclusion rule."
     )
     description: str | None = Field(default=None, max_length=255)
 
@@ -50,7 +48,6 @@ class ScopeRule(BaseModel):
             if not (1 <= p <= 65535):
                 raise ValueError(f"Port {p} is outside valid range 1-65535")
         return sorted(list(set(ports)))
-
 
     @field_validator("target_value")
     @classmethod
@@ -87,6 +84,7 @@ class ScopeRule(BaseModel):
 
 class ScopePolicy(BaseModel):
     """Aggregated scope policy compatible with backend policy validators."""
+
     model_config = ConfigDict(extra="ignore")
 
     target_domains: list[str] = Field(default_factory=list)
@@ -105,6 +103,7 @@ class Assessment(BaseModel):
     Canonical authority record for an authorized assessment.
     An assessment is created in PENDING_APPROVAL and requires explicit review.
     """
+
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     assessment_id: str = Field(default_factory=lambda: generate_id("assess"))
@@ -115,24 +114,21 @@ class Assessment(BaseModel):
     owner: str = Field(default="security_team", min_length=2, max_length=120)
     authorization_reference: str = Field(
         default="AUTH-PENDING",
-        description="Formal tracking reference (e.g. Ticket ID, SOW number, approval token)"
+        description="Formal tracking reference (e.g. Ticket ID, SOW number, approval token)",
     )
     authorization_acknowledged: bool = Field(
-        default=False,
-        description="Explicit confirmation that operator verified authorization"
+        default=False, description="Explicit confirmation that operator verified authorization"
     )
     scope_rules: list[ScopeRule] = Field(
-        default_factory=list,
-        description="Explicit list of authorized scope boundaries"
+        default_factory=list, description="Explicit list of authorized scope boundaries"
     )
     scope: ScopePolicy | None = Field(
-        default=None,
-        description="Backward-compatible aggregated scope policy"
+        default=None, description="Backward-compatible aggregated scope policy"
     )
     lifecycle_status: AssessmentStatus = Field(
         default=AssessmentStatus.PENDING_APPROVAL,
         alias="status",
-        description="Assessment status; never defaults to APPROVED on creation"
+        description="Assessment status; never defaults to APPROVED on creation",
     )
     max_concurrency: int = Field(default=3, ge=1, le=10)
     max_requests_per_minute: int = Field(default=60, ge=1, le=1000)
@@ -144,6 +140,26 @@ class Assessment(BaseModel):
     updated_at: datetime = Field(default_factory=utc_now)
     expires_at: datetime | None = None
     completed_at: datetime | None = None
+
+    @field_validator("lifecycle_status", mode="before")
+    @classmethod
+    def normalize_status(cls, v: object) -> object:
+        if hasattr(v, "value"):
+            v = v.value
+        if isinstance(v, str):
+            val = v.strip().upper()
+            mapping = {
+                "PENDING": AssessmentStatus.PENDING_APPROVAL,
+                "IN_PROGRESS": AssessmentStatus.ACTIVE,
+                "COMPLETED": AssessmentStatus.COMPLETED,
+                "CANCELLED": AssessmentStatus.CANCELLED,
+            }
+            if val in mapping:
+                return mapping[val]
+            if val in AssessmentStatus.__members__:
+                return AssessmentStatus[val]
+            return v
+        return v
 
     @field_validator("created_at", "updated_at", "expires_at", "completed_at")
     @classmethod
@@ -212,7 +228,9 @@ class Assessment(BaseModel):
                     exclusions.append(r.target_value)
                     continue
                 if r.target_type == TargetType.DOMAIN:
-                    domains.append(f"*.{r.target_value}" if r.include_subdomains else r.target_value)
+                    domains.append(
+                        f"*.{r.target_value}" if r.include_subdomains else r.target_value
+                    )
                 elif r.target_type == TargetType.IP_ADDRESS:
                     ips.append(r.target_value)
                 elif r.target_type == TargetType.CIDR:
@@ -230,7 +248,9 @@ class Assessment(BaseModel):
                 allowed_ports=sorted(list(ports)) if ports else [80, 443, 3000, 8000, 8080, 8443],
                 max_requests_per_minute=self.max_requests_per_minute,
                 max_concurrency=self.max_concurrency,
-                allowed_permission_level=self.permitted_profiles[0] if self.permitted_profiles else TestPermissionLevel.PASSIVE_ONLY,
+                allowed_permission_level=self.permitted_profiles[0]
+                if self.permitted_profiles
+                else TestPermissionLevel.PASSIVE_ONLY,
             )
         return self
 

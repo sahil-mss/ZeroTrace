@@ -208,7 +208,6 @@ class RegisterAssetRequest(BaseModel):
         return v
 
 
-
 # ==============================================================================
 # Helper Verification Functions
 # ==============================================================================
@@ -468,7 +467,11 @@ def start_assessment(
     permission_level = (
         req.permission_level
         if (req and req.permission_level)
-        else (assessment.permitted_profiles[0] if assessment.permitted_profiles else TestPermissionLevel.PASSIVE_ONLY)
+        else (
+            assessment.permitted_profiles[0]
+            if assessment.permitted_profiles
+            else TestPermissionLevel.PASSIVE_ONLY
+        )
     )
 
     if permission_level not in assessment.permitted_profiles:
@@ -613,7 +616,9 @@ def cancel_assessment(
 )
 def list_assets(
     assessment_id: str,
-    scope_status: ScopeStatus | None = Query(default=None, description="Filter by scope classification"),
+    scope_status: ScopeStatus | None = Query(
+        default=None, description="Filter by scope classification"
+    ),
     asset_type: AssetType | None = Query(default=None, description="Filter by asset type"),
     limit: int = Query(default=100, ge=1, le=500, description="Page limit"),
     offset: int = Query(default=0, ge=0, description="Offset"),
@@ -722,7 +727,9 @@ def list_audit_events(
 )
 def list_jobs(
     assessment_id: str,
-    status_filter: JobStatus | None = Query(default=None, alias="status", description="Filter by job status"),
+    status_filter: JobStatus | None = Query(
+        default=None, alias="status", description="Filter by job status"
+    ),
     limit: int = Query(default=100, ge=1, le=500, description="Page limit"),
     offset: int = Query(default=0, ge=0, description="Offset"),
     session: Session = Depends(get_db),

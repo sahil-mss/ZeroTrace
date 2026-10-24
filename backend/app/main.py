@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.api.ai_endpoints import router as ai_router
 from backend.app.api.assessments import router as assessments_router
 from backend.app.api.health import router as health_router
 from backend.app.core.config import settings
@@ -30,9 +31,9 @@ def create_application(cors_origins: list[str] | None = None) -> FastAPI:
     # Register API route handlers
     application.include_router(health_router)
     application.include_router(assessments_router)
+    application.include_router(ai_router)
 
     return application
 
 
 app = create_application()
-

@@ -216,7 +216,9 @@ def test_allowed_transitions_full_lifecycle(db_session: Session, test_assessment
     assert job.completed_at is not None
 
     # Verify audit history length and entries
-    assert len(job.audit_history) == 6  # None->CREATED, CREATED->POLICY_CHECK, POLICY_CHECK->QUEUED, QUEUED->RUNNING, RUNNING->REVIEW, REVIEW->COMPLETED
+    assert (
+        len(job.audit_history) == 6
+    )  # None->CREATED, CREATED->POLICY_CHECK, POLICY_CHECK->QUEUED, QUEUED->RUNNING, RUNNING->REVIEW, REVIEW->COMPLETED
 
 
 def test_disallowed_transitions_strictly_rejected(db_session: Session, test_assessment: Assessment):
@@ -271,7 +273,9 @@ def test_policy_denial_transitions_to_failed(db_session: Session, test_assessmen
     assert any(e.event_type == "JOB_POLICY_DENIED" and e.job_id == job.job_id for e in events)
 
 
-def test_intrusive_profile_requires_approval_workflow(db_session: Session, test_assessment: Assessment):
+def test_intrusive_profile_requires_approval_workflow(
+    db_session: Session, test_assessment: Assessment
+):
     service = JobService(session=db_session)
 
     # Job with INTRUSIVE_TEST profile requires explicit sign-off

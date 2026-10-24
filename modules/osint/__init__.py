@@ -13,6 +13,8 @@ from modules.osint.contracts import (
     OSINTRawObservation,
     OSINTResourceBudget,
 )
+from modules.osint.crtsh_adapter import CertificateTransparencyAdapter
+from modules.osint.dns_adapter import DNSMetadataAdapter
 from modules.osint.mock_adapter import MockOSINTAdapter
 from modules.osint.service import OSINTCollectionService, OSINTCollectionSummary
 
@@ -24,6 +26,8 @@ __all__ = [
     "OSINTAdapterResult",
     "OSINTResourceBudget",
     "MockOSINTAdapter",
+    "DNSMetadataAdapter",
+    "CertificateTransparencyAdapter",
     "OSINTCollectionService",
     "OSINTCollectionSummary",
 ]

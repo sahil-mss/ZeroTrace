@@ -41,6 +41,17 @@ class Settings(BaseSettings):
     DEFAULT_MAX_REQUESTS_PER_MINUTE: int = 60
     ALLOW_INTRUSIVE_TESTS: bool = False
 
+    # Passive OSINT Intelligence Settings
+    # Both network-backed adapters are disabled by default for safety and offline compliance.
+    OSINT_NETWORK_ENABLED: bool = False
+    OSINT_DNS_ENABLED: bool = False
+    OSINT_CT_ENABLED: bool = False
+    OSINT_REQUEST_TIMEOUT_SECONDS: float = 10.0
+    OSINT_MAX_RESPONSE_BYTES: int = 1_000_000  # 1 MB maximum response body
+    OSINT_RATE_LIMIT_PER_MINUTE: int = 30
+    OSINT_MAX_RECORDS_PER_COLLECTION: int = 100
+    OSINT_COLLECTION_TIMEOUT_SECONDS: float = 60.0
+    OSINT_USER_AGENT: str = "ZeroTrace-OSINT/1.0 (+https://github.com/sahil-mss/ZeroTrace)"
+
 
 settings = Settings()
-

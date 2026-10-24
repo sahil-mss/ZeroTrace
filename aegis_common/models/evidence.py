@@ -12,6 +12,7 @@ class Evidence(BaseModel):
     Canonical evidence provenance record capturing an immutable observation.
     Sensitive credentials and raw tokens are strictly redacted upon model validation.
     """
+
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     evidence_id: str = Field(default_factory=lambda: generate_id("evi"))
@@ -26,24 +27,24 @@ class Evidence(BaseModel):
         min_length=64,
         max_length=64,
         alias="hash_sha256",
-        description="Cryptographic SHA-256 hash of normalized evidence payload"
+        description="Cryptographic SHA-256 hash of normalized evidence payload",
     )
     raw_payload_ref: str | None = Field(
         default=None,
-        description="Optional local filesystem or blob URI where raw tool output is stored"
+        description="Optional local filesystem or blob URI where raw tool output is stored",
     )
     sanitized_excerpt: str | None = Field(
         default=None,
         max_length=4096,
-        description="Bounded, sanitized text excerpt safe for API transmission"
+        description="Bounded, sanitized text excerpt safe for API transmission",
     )
     data: dict[str, Any] = Field(
         default_factory=dict,
-        description="Structured representation of the observation with credentials redacted"
+        description="Structured representation of the observation with credentials redacted",
     )
     data_classification: DataClassification = Field(
         default=DataClassification.INTERNAL,
-        description="Security classification of the observed evidence"
+        description="Security classification of the observed evidence",
     )
     tool_version: str | None = Field(default="1.0")
     metadata: dict[str, Any] = Field(default_factory=dict)

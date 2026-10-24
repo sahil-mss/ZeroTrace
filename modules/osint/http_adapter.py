@@ -77,13 +77,17 @@ class HttpFingerprintAdapter:
 
                 # Check cookies
                 for c in resp.cookies.jar:
-                    cookies.append({
-                        "name": c.name,
-                        "secure": c.secure,
-                        "httponly": bool(c.has_nonstandard_attr("httponly") or getattr(c, "httponly", False)),
-                        "path": c.path,
-                        "domain": c.domain,
-                    })
+                    cookies.append(
+                        {
+                            "name": c.name,
+                            "secure": c.secure,
+                            "httponly": bool(
+                                c.has_nonstandard_attr("httponly") or getattr(c, "httponly", False)
+                            ),
+                            "path": c.path,
+                            "domain": c.domain,
+                        }
+                    )
 
         except httpx.ConnectError:
             error_msg = f"Failed to connect to {url}"

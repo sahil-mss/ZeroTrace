@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from pydantic import ValidationError
 
@@ -18,7 +19,7 @@ from schemas import (
 
 
 def test_assessment_valid_lifecycle():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     assessment = Assessment(
         id="asm_test_001",
         name="OWASP Juice Shop Lab Assessment",
@@ -37,7 +38,7 @@ def test_assessment_valid_lifecycle():
 
 
 def test_assessment_invalid_completion_date():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     with pytest.raises(ValidationError) as exc_info:
         Assessment(
             id="asm_bad",
@@ -92,8 +93,9 @@ def test_finding_requires_evidence_when_confirmed():
             evidence_references=[],  # Empty!
             source_tool="custom_scanner",
         )
-    assert "cannot have verification_status=CONFIRMED without at least one supporting evidence reference" in str(
-        exc_info.value
+    assert (
+        "cannot have verification_status=CONFIRMED without at least one supporting evidence reference"
+        in str(exc_info.value)
     )
 
     # With evidence reference, confirmation succeeds

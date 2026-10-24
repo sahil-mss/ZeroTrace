@@ -67,7 +67,9 @@ def normalize_hostname(hostname: str) -> str:
         if len(label) > 63:
             raise ValueError(f"Hostname label exceeds 63 characters: '{label}' in '{hostname}'")
         if label.startswith("-") or label.endswith("-"):
-            raise ValueError(f"Hostname label cannot start or end with hyphen: '{label}' in '{hostname}'")
+            raise ValueError(
+                f"Hostname label cannot start or end with hyphen: '{label}' in '{hostname}'"
+            )
 
     if len(punycode) > 253:
         raise ValueError(f"Hostname total length exceeds 253 characters: '{punycode}'")
@@ -140,7 +142,9 @@ def normalize_url(url: str) -> str:
 
     scheme = parsed.scheme.lower()
     if scheme not in ("http", "https"):
-        raise ValueError(f"Unsupported URL scheme '{parsed.scheme}'. Only 'http' and 'https' are permitted.")
+        raise ValueError(
+            f"Unsupported URL scheme '{parsed.scheme}'. Only 'http' and 'https' are permitted."
+        )
 
     if parsed.username or parsed.password:
         raise ValueError(f"URL contains embedded user credentials, which are prohibited: '{url}'")
@@ -244,7 +248,9 @@ def calculate_content_hash(data: Any) -> str:
     return hasher.hexdigest()
 
 
-def infer_and_normalize_asset_target(raw_target: str, explicit_type: AssetType | None = None) -> tuple[str, AssetType]:
+def infer_and_normalize_asset_target(
+    raw_target: str, explicit_type: AssetType | None = None
+) -> tuple[str, AssetType]:
     """
     Inspects a target string, infers its AssetType (if not provided), and returns
     (normalized_value, asset_type).

@@ -1,9 +1,8 @@
-import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
-from schemas.contracts import AIAnalysis, Evidence, Finding
+from schemas.contracts import Evidence, Finding
 from schemas.enums import ConfidenceLevel, FindingSeverity
 
 logger = logging.getLogger(__name__)
@@ -14,8 +13,8 @@ class LLMClient(ABC):
 
     @abstractmethod
     def generate_finding_analysis(
-        self, finding: Finding, evidence_records: List[Evidence]
-    ) -> Dict[str, Any]:
+        self, finding: Finding, evidence_records: list[Evidence]
+    ) -> dict[str, Any]:
         """Generate structured finding analysis matching AIAnalysis schema."""
         pass
 
@@ -27,13 +26,11 @@ class DeterministicGroundedProvider(LLMClient):
     """
 
     def generate_finding_analysis(
-        self, finding: Finding, evidence_records: List[Evidence]
-    ) -> Dict[str, Any]:
+        self, finding: Finding, evidence_records: list[Evidence]
+    ) -> dict[str, Any]:
         available_ids = [ev.id for ev in evidence_records]
         # Bounded citations: strictly use IDs from evidence_references that exist in evidence_records
-        valid_citations = [
-            ev_id for ev_id in finding.evidence_references if ev_id in available_ids
-        ]
+        valid_citations = [ev_id for ev_id in finding.evidence_references if ev_id in available_ids]
 
         # Inferred root cause and concrete remediation
         remediation_text = (
@@ -53,10 +50,12 @@ class DeterministicGroundedProvider(LLMClient):
             )
             sev_assessment = FindingSeverity.CRITICAL
             sev_just = "Direct threat to application data confidentiality and integrity."
-            conf_assessment = (
-                ConfidenceLevel.HIGH if valid_citations else ConfidenceLevel.MEDIUM
+            conf_assessment = ConfidenceLevel.HIGH if valid_citations else ConfidenceLevel.MEDIUM
+            conf_just = (
+                "Confirmed by active database response payload."
+                if valid_citations
+                else "Unverified scanner suspicion."
             )
-            conf_just = "Confirmed by active database response payload." if valid_citations else "Unverified scanner suspicion."
             remediation = (
                 "1. Refactor database interactions to use prepared statements / parameterized queries.\n"
                 "2. Disable verbose database error messages in production responses.\n"
@@ -75,9 +74,7 @@ class DeterministicGroundedProvider(LLMClient):
             )
             sev_assessment = FindingSeverity.HIGH
             sev_just = "Enables unauthorized access to sensitive user objects and records."
-            conf_assessment = (
-                ConfidenceLevel.HIGH if valid_citations else ConfidenceLevel.MEDIUM
-            )
+            conf_assessment = ConfidenceLevel.HIGH if valid_citations else ConfidenceLevel.MEDIUM
             conf_just = "Demonstrated across distinct user tokens in testing."
             remediation = (
                 "1. Enforce record-level ownership checks in application middleware before query execution.\n"
@@ -95,7 +92,9 @@ class DeterministicGroundedProvider(LLMClient):
             sev_assessment = finding.severity
             sev_just = f"Assessed at {finding.severity.value} due to exposure surface on asset {finding.asset_id or 'target'}."
             conf_assessment = finding.confidence
-            conf_just = f"Based on scanner verification status ({finding.verification_status.value})."
+            conf_just = (
+                f"Based on scanner verification status ({finding.verification_status.value})."
+            )
             remediation = remediation_text
             limitations = ["Further testing required under varied network topologies."]
 

@@ -1,11 +1,14 @@
-import pytest
-from datetime import datetime, timezone
 from backend.adapter import UpstreamNormalizer
-from schemas.contracts import Assessment, Asset, Finding, Evidence
-from schemas.enums import AssessmentStatus, AssetType, FindingSeverity, ConfidenceLevel, VerificationStatus
 from modules.ai.service import AIAnalysisService
-from modules.reporting.generator import ReportGenerator
 from modules.reporting.exporter import ReportExporter
+from modules.reporting.generator import ReportGenerator
+from schemas.enums import (
+    AssessmentStatus,
+    AssetType,
+    ConfidenceLevel,
+    FindingSeverity,
+    VerificationStatus,
+)
 
 
 def test_upstream_normalizer_with_person1_schemas():
@@ -206,6 +209,7 @@ def test_full_pipeline_from_raw_upstream_to_ai_and_report_export(tmp_path):
 
     # 5. Export Report to Markdown, JSON, and HTML
     import os
+
     out_dir = str(tmp_path)
     md_str = ReportExporter.to_markdown(report)
     json_str = ReportExporter.to_json(report)

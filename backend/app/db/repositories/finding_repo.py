@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,7 +15,9 @@ class FindingRepository:
         # 1. Verify assessment exists
         assessment = self.session.get(AssessmentModel, finding.assessment_id)
         if not assessment:
-            raise ValueError(f"Cannot record finding: Assessment {finding.assessment_id} does not exist.")
+            raise ValueError(
+                f"Cannot record finding: Assessment {finding.assessment_id} does not exist."
+            )
 
         # 2. Verify asset exists and belongs to the same assessment
         asset = self.session.get(AssetModel, finding.asset_id)
@@ -95,4 +96,3 @@ class FindingRepository:
             stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
-

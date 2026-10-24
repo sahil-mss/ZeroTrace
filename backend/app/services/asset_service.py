@@ -109,7 +109,10 @@ class AssetService:
 
             # Merge evidence IDs
             merged_evidence = list(existing_asset.source_evidence_ids)
-            if observation.source_evidence_id and observation.source_evidence_id not in merged_evidence:
+            if (
+                observation.source_evidence_id
+                and observation.source_evidence_id not in merged_evidence
+            ):
                 merged_evidence.append(observation.source_evidence_id)
 
             # Merge relationships
@@ -158,7 +161,9 @@ class AssetService:
             normalized_value=normalized_value,
             scope_classification=calculated_scope_status,
             confidence=observation.confidence,
-            source_evidence_ids=[observation.source_evidence_id] if observation.source_evidence_id else [],
+            source_evidence_ids=[observation.source_evidence_id]
+            if observation.source_evidence_id
+            else [],
             is_inferred=observation.is_inferred,
             directly_observed=not observation.is_inferred,
             relationships=observation.relationships,

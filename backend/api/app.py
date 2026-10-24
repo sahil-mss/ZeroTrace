@@ -54,8 +54,12 @@ def create_app(db_url: str = "sqlite:///./aegis_data/aegispt.db") -> FastAPI:
     # Register OSINT task handlers
     orchestrator.register_task_handler("OSINT_DNS", osint_workflow.handle_dns_job)
     orchestrator.register_task_handler("OSINT_CRTSH", osint_workflow.handle_crtsh_job)
-    orchestrator.register_task_handler("OSINT_HTTP_PROBE", osint_workflow.handle_http_fingerprint_job)
-    orchestrator.register_task_handler("OSINT_FULL_PASSIVE", osint_workflow.handle_full_passive_recon)
+    orchestrator.register_task_handler(
+        "OSINT_HTTP_PROBE", osint_workflow.handle_http_fingerprint_job
+    )
+    orchestrator.register_task_handler(
+        "OSINT_FULL_PASSIVE", osint_workflow.handle_full_passive_recon
+    )
 
     app.state.db = db
     app.state.evidence_store = evidence_store
@@ -79,10 +83,20 @@ def create_app(db_url: str = "sqlite:///./aegis_data/aegispt.db") -> FastAPI:
         scope: ScopePolicy
         description: str | None = ""
 
-    @app.post("/assessments", response_model=Assessment, status_code=status.HTTP_201_CREATED, tags=["Assessments"])
+    @app.post(
+        "/assessments",
+        response_model=Assessment,
+        status_code=status.HTTP_201_CREATED,
+        tags=["Assessments"],
+    )
     def create_assessment(req: CreateAssessmentRequest):
         # Validate that at least one target is provided
-        if not (req.scope.target_domains or req.scope.target_ips or req.scope.target_cidrs or req.scope.target_urls):
+        if not (
+            req.scope.target_domains
+            or req.scope.target_ips
+            or req.scope.target_cidrs
+            or req.scope.target_urls
+        ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Assessment scope must define at least one authorized domain, IP, CIDR, or URL.",
@@ -176,7 +190,11 @@ def create_app(db_url: str = "sqlite:///./aegis_data/aegispt.db") -> FastAPI:
         return {
             "message": "Assessment and all active jobs successfully cancelled.",
             "assessment_id": assessment_id,
-            "status": cancelled.status.value,
+            "status": (
+                cancelled.status.value
+                if hasattr(cancelled.status, "value")
+                else str(cancelled.status)
+            ).upper(),
         }
 
     # --- Assets ---
@@ -194,15 +212,24 @@ def create_app(db_url: str = "sqlite:///./aegis_data/aegispt.db") -> FastAPI:
         return assets
 
     # --- Evidence ---
-    @app.get("/assessments/{assessment_id}/evidence", response_model=list[Evidence], tags=["Evidence"])
+    @app.get(
+        "/assessments/{assessment_id}/evidence", response_model=list[Evidence], tags=["Evidence"]
+    )
     def list_evidence(assessment_id: str):
         return db.list_evidence(assessment_id)
 
-    @app.post("/assessments/{assessment_id}/evidence", response_model=Evidence, status_code=201, tags=["Evidence"])
+    @app.post(
+        "/assessments/{assessment_id}/evidence",
+        response_model=Evidence,
+        status_code=201,
+        tags=["Evidence"],
+    )
     def submit_evidence(assessment_id: str, evidence: Evidence):
         """Allows Person 2's scanners or Person 3's AI to register verified evidence."""
         if evidence.assessment_id != assessment_id:
-            raise HTTPException(status_code=400, detail="Mismatched assessment_id in evidence record.")
+            raise HTTPException(
+                status_code=400, detail="Mismatched assessment_id in evidence record."
+            )
 
         # Cryptographically verify the evidence before storing
         if not evidence_store.verify_integrity(evidence):
@@ -215,7 +242,9 @@ def create_app(db_url: str = "sqlite:///./aegis_data/aegispt.db") -> FastAPI:
         return saved
 
     # --- Findings ---
-    @app.get("/assessments/{assessment_id}/findings", response_model=list[Finding], tags=["Findings"])
+    @app.get(
+        "/assessments/{assessment_id}/findings", response_model=list[Finding], tags=["Findings"]
+    )
     def list_findings(
         assessment_id: str,
         severity: Severity | None = None,
@@ -228,7 +257,12 @@ def create_app(db_url: str = "sqlite:///./aegis_data/aegispt.db") -> FastAPI:
             findings = [f for f in findings if f.verification_status == verification_status]
         return findings
 
-    @app.post("/assessments/{assessment_id}/findings", response_model=Finding, status_code=201, tags=["Findings"])
+    @app.post(
+        "/assessments/{assessment_id}/findings",
+        response_model=Finding,
+        status_code=201,
+        tags=["Findings"],
+    )
     def submit_finding(assessment_id: str, finding: Finding):
         """
         Allows Person 2's scanners or Person 3's models to submit normalized findings.
@@ -278,7 +312,9 @@ def create_app(db_url: str = "sqlite:///./aegis_data/aegispt.db") -> FastAPI:
         permission_level: TestPermissionLevel = TestPermissionLevel.PASSIVE_ONLY
         timeout_seconds: int = 180
 
-    @app.post("/assessments/{assessment_id}/jobs", response_model=Job, status_code=201, tags=["Jobs"])
+    @app.post(
+        "/assessments/{assessment_id}/jobs", response_model=Job, status_code=201, tags=["Jobs"]
+    )
     def enqueue_job(assessment_id: str, req: EnqueueJobRequest):
         try:
             job = orchestrator.enqueue_job(
@@ -333,14 +369,18 @@ def create_app(db_url: str = "sqlite:///./aegis_data/aegispt.db") -> FastAPI:
             "assessment": assess.model_dump(mode="json"),
             "summary": {
                 "total_assets": len(assets),
-                "in_scope_assets": len([a for a in assets if a.scope_status == ScopeStatus.IN_SCOPE]),
+                "in_scope_assets": len(
+                    [a for a in assets if a.scope_status == ScopeStatus.IN_SCOPE]
+                ),
                 "total_findings": len(findings),
                 "critical_findings": len([f for f in findings if f.severity == Severity.CRITICAL]),
                 "high_findings": len([f for f in findings if f.severity == Severity.HIGH]),
                 "medium_findings": len([f for f in findings if f.severity == Severity.MEDIUM]),
                 "low_findings": len([f for f in findings if f.severity == Severity.LOW]),
                 "info_findings": len([f for f in findings if f.severity == Severity.INFO]),
-                "confirmed_findings": len([f for f in findings if f.verification_status == VerificationStatus.CONFIRMED]),
+                "confirmed_findings": len(
+                    [f for f in findings if f.verification_status == VerificationStatus.CONFIRMED]
+                ),
                 "total_evidence_records": len(evidence),
                 "total_audit_events": len(events),
             },

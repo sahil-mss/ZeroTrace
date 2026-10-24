@@ -30,6 +30,7 @@ from aegis_common.schemas_generator import generate_json_schemas
 # 1. Assessment Model Tests
 # ==============================================================================
 
+
 def test_assessment_valid_creation():
     rule = ScopeRule(
         target_type=TargetType.DOMAIN,
@@ -86,6 +87,7 @@ def test_assessment_invalid_enum_status():
 # ==============================================================================
 # 2. ScopeRule Contract Tests
 # ==============================================================================
+
 
 def test_scope_rule_valid_boundaries():
     # Domain rule: subdomains must NOT be automatically authorized
@@ -159,6 +161,7 @@ def test_scope_rule_malformed_targets():
 # 3. Asset Model Tests
 # ==============================================================================
 
+
 def test_asset_confidence_and_inferred_flags():
     # Directly observed asset
     asset1 = Asset(
@@ -218,6 +221,7 @@ def test_asset_timezone_handling():
 # 4. Evidence Model Tests
 # ==============================================================================
 
+
 def test_evidence_sanitization_and_hash():
     valid_hash = "a" * 64
     raw_sensitive_data = {
@@ -259,6 +263,7 @@ def test_evidence_invalid_hash_length():
 # ==============================================================================
 # 5. Finding Model Tests
 # ==============================================================================
+
 
 def test_finding_valid_and_non_confirmed_default():
     finding = Finding(
@@ -330,6 +335,7 @@ def test_finding_malformed_cve_and_cwe():
 # 6. Job Model Tests
 # ==============================================================================
 
+
 def test_job_resource_budget_and_timeouts():
     job = Job(
         assessment_id="assess_01",
@@ -357,6 +363,7 @@ def test_job_unsupported_extra_fields():
 # 7. AuditEvent Model Tests
 # ==============================================================================
 
+
 def test_audit_event_sanitization_and_outcome():
     event = AuditEvent(
         assessment_id="assess_01",
@@ -375,6 +382,7 @@ def test_audit_event_sanitization_and_outcome():
 # ==============================================================================
 # 8. Schema Generator Repeatability Test
 # ==============================================================================
+
 
 def test_repeatable_json_schema_generation(tmp_path):
     generated = generate_json_schemas(output_dir=str(tmp_path))

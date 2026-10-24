@@ -13,6 +13,7 @@ from aegis_common.utils import utc_now
 
 class ScopeReasonCode(str, Enum):
     """Stable, machine-readable reason codes for scope decisions."""
+
     ALLOWED = "ALLOWED"
     ASSESSMENT_NOT_FOUND = "ASSESSMENT_NOT_FOUND"
     ASSESSMENT_UNAPPROVED = "ASSESSMENT_UNAPPROVED"
@@ -38,12 +39,14 @@ class ScopeReasonCode(str, Enum):
 
 class ScopeValidationError(Exception):
     """Raised when a target cannot be parsed or normalized."""
+
     pass
 
 
 @dataclass(frozen=True)
 class NormalizedTarget:
     """Standardized representation of a validated target candidate."""
+
     raw: str
     target_type: TargetType
     canonical: str
@@ -59,6 +62,7 @@ class NormalizedTarget:
 @dataclass(frozen=True)
 class ScopeValidationResult:
     """Structured scope decision record explaining policy enforcement."""
+
     allowed: bool
     reason_code: ScopeReasonCode
     explanation: str
@@ -131,7 +135,11 @@ def normalize_target(target: str) -> NormalizedTarget:
             )
 
         # Check for embedded credentials (RFC 3986 security risk)
-        if split_result.username or split_result.password or "@" in split_result.netloc.split(":")[0]:
+        if (
+            split_result.username
+            or split_result.password
+            or "@" in split_result.netloc.split(":")[0]
+        ):
             raise ScopeValidationError("Embedded user credentials in target URL are prohibited.")
 
         hostname_raw = split_result.hostname
@@ -190,7 +198,7 @@ def normalize_target(target: str) -> NormalizedTarget:
     if cleaned.startswith("[") and "]" in cleaned:
         bracket_end = cleaned.find("]")
         ip_str = cleaned[1:bracket_end]
-        port_part = cleaned[bracket_end + 1:]
+        port_part = cleaned[bracket_end + 1 :]
         port = None
         if port_part.startswith(":"):
             try:
@@ -198,7 +206,9 @@ def normalize_target(target: str) -> NormalizedTarget:
                 if not (1 <= port <= 65535):
                     raise ScopeValidationError(f"Port {port} is outside valid range 1-65535.")
             except ValueError as err:
-                raise ScopeValidationError(f"Invalid port in IPv6 target '{target}': {err}") from err
+                raise ScopeValidationError(
+                    f"Invalid port in IPv6 target '{target}': {err}"
+                ) from err
 
         try:
             ip_v6 = ipaddress.IPv6Address(ip_str)
@@ -221,7 +231,9 @@ def normalize_target(target: str) -> NormalizedTarget:
         return NormalizedTarget(
             raw=target,
             target_type=TargetType.IP_ADDRESS,
-            canonical=ip_obj.compressed if isinstance(ip_obj, ipaddress.IPv6Address) else str(ip_obj),
+            canonical=ip_obj.compressed
+            if isinstance(ip_obj, ipaddress.IPv6Address)
+            else str(ip_obj),
             hostname=str(ip_obj),
             ip_object=ip_obj,
         )
@@ -323,9 +335,13 @@ class ScopeValidator:
             return "Assessment scope is None (fail closed).", []
 
         # If an Assessment instance is provided, evaluate assessment lifecycle and validity
-        if isinstance(assessment_scope, Assessment) or hasattr(assessment_scope, "lifecycle_status"):
+        if isinstance(assessment_scope, Assessment) or hasattr(
+            assessment_scope, "lifecycle_status"
+        ):
             # Check lifecycle status
-            status = getattr(assessment_scope, "lifecycle_status", None) or getattr(assessment_scope, "status", None)
+            status = getattr(assessment_scope, "lifecycle_status", None) or getattr(
+                assessment_scope, "status", None
+            )
             if status != AssessmentStatus.APPROVED and status != AssessmentStatus.ACTIVE:
                 return (
                     f"Assessment status is '{status}'. Only APPROVED or ACTIVE assessments permit execution.",
@@ -492,17 +508,13 @@ class ScopeValidator:
             # Host matched! Now check port
             if rule.approved_ports and norm.effective_port is not None:
                 if norm.effective_port not in rule.approved_ports:
-                    port_denied_reason = (
-                        f"Port {norm.effective_port} is not in allowed_ports list: {rule.approved_ports} (rule: '{rule.target_value}')."
-                    )
+                    port_denied_reason = f"Port {norm.effective_port} is not in allowed_ports list: {rule.approved_ports} (rule: '{rule.target_value}')."
                     continue
 
             # Check path prefix
             if rule.permitted_path_prefixes and norm.path is not None:
                 if not any(norm.path.startswith(prefix) for prefix in rule.permitted_path_prefixes):
-                    path_denied_reason = (
-                        f"Path '{norm.path}' does not match any permitted prefixes {rule.permitted_path_prefixes}."
-                    )
+                    path_denied_reason = f"Path '{norm.path}' does not match any permitted prefixes {rule.permitted_path_prefixes}."
                     continue
 
             # Target fully satisfied this rule!
@@ -601,7 +613,10 @@ class ScopeValidator:
             if norm.hostname.endswith("." + rule_host):
                 if rule.include_subdomains:
                     return True, None
-                return False, f"Subdomain '{norm.hostname}' denied. include_subdomains is not enabled for '{rule_host}'."
+                return (
+                    False,
+                    f"Subdomain '{norm.hostname}' denied. include_subdomains is not enabled for '{rule_host}'.",
+                )
 
             # Explicit check against substring lookalikes (e.g. another-example.test)
             return False, None
@@ -612,7 +627,10 @@ class ScopeValidator:
                 rule_url_norm = normalize_target(rule.target_value)
                 if norm.hostname == rule_url_norm.hostname:
                     # Check port if URL rule defines one
-                    if rule_url_norm.port is not None and norm.effective_port != rule_url_norm.effective_port:
+                    if (
+                        rule_url_norm.port is not None
+                        and norm.effective_port != rule_url_norm.effective_port
+                    ):
                         return False, None
                     # Check path
                     if rule_url_norm.path and rule_url_norm.path != "/":

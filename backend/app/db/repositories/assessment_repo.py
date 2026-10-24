@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -54,7 +53,12 @@ class AssessmentRepository:
         return model.to_domain()
 
     def list_all(self, limit: int = 100, offset: int = 0) -> list[Assessment]:
-        stmt = select(AssessmentModel).order_by(AssessmentModel.created_at.desc()).limit(limit).offset(offset)
+        stmt = (
+            select(AssessmentModel)
+            .order_by(AssessmentModel.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
 

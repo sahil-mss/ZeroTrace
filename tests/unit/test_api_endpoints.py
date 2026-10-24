@@ -190,7 +190,10 @@ def test_create_assessment_validation_and_no_implicit_approval(client):
     created = resp.json()
 
     assert created["assessment_id"].startswith("assess_")
-    assert created.get("name") == "Alpha Lab Penetration Assessment" or created.get("title") == "Alpha Lab Penetration Assessment"
+    assert (
+        created.get("name") == "Alpha Lab Penetration Assessment"
+        or created.get("title") == "Alpha Lab Penetration Assessment"
+    )
     assert created["organization_name"] == "Acme Defense Corp"
     assert created["authorization_acknowledged"] is True
     # CRITICAL: Status must be PENDING_APPROVAL on creation
@@ -456,17 +459,26 @@ def test_evidence_and_jobs_assessment_isolation(client):
     # Create Assessment A
     ass_a = client.post(
         "/assessments",
-        json={"title": "Assessment A", "organization_name": "Org A", "authorized_by": "Operator A", "scope": {"target_domains": ["a.test"]}},
+        json={
+            "title": "Assessment A",
+            "organization_name": "Org A",
+            "authorized_by": "Operator A",
+            "scope": {"target_domains": ["a.test"]},
+        },
         headers=AUTH_HEADERS,
     ).json()
 
     # Create Assessment B
     ass_b = client.post(
         "/assessments",
-        json={"title": "Assessment B", "organization_name": "Org B", "authorized_by": "Operator B", "scope": {"target_domains": ["b.test"]}},
+        json={
+            "title": "Assessment B",
+            "organization_name": "Org B",
+            "authorized_by": "Operator B",
+            "scope": {"target_domains": ["b.test"]},
+        },
         headers=AUTH_HEADERS,
     ).json()
-
 
     # Submit Evidence to Assessment A
     evi_a = client.post(
@@ -481,12 +493,16 @@ def test_evidence_and_jobs_assessment_isolation(client):
     assert evi_a["assessment_id"] == ass_a["assessment_id"]
 
     # Verify Assessment A lists this evidence
-    list_a = client.get(f"/assessments/{ass_a['assessment_id']}/evidence", headers=AUTH_HEADERS).json()
+    list_a = client.get(
+        f"/assessments/{ass_a['assessment_id']}/evidence", headers=AUTH_HEADERS
+    ).json()
     assert len(list_a) == 1
     assert list_a[0]["evidence_id"] == evi_a["evidence_id"]
 
     # Verify Assessment B has ZERO evidence records (strict isolation)
-    list_b = client.get(f"/assessments/{ass_b['assessment_id']}/evidence", headers=AUTH_HEADERS).json()
+    list_b = client.get(
+        f"/assessments/{ass_b['assessment_id']}/evidence", headers=AUTH_HEADERS
+    ).json()
     assert len(list_b) == 0
 
 

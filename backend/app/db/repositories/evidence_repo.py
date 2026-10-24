@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,13 +15,17 @@ class EvidenceRepository:
         # 1. Verify assessment exists
         assessment = self.session.get(AssessmentModel, evidence.assessment_id)
         if not assessment:
-            raise ValueError(f"Cannot store evidence: Assessment {evidence.assessment_id} does not exist.")
+            raise ValueError(
+                f"Cannot store evidence: Assessment {evidence.assessment_id} does not exist."
+            )
 
         # 2. If asset_id is provided, verify asset exists and belongs to the SAME assessment
         if evidence.asset_id:
             asset = self.session.get(AssetModel, evidence.asset_id)
             if not asset:
-                raise ValueError(f"Cannot store evidence: Asset {evidence.asset_id} does not exist.")
+                raise ValueError(
+                    f"Cannot store evidence: Asset {evidence.asset_id} does not exist."
+                )
             if asset.assessment_id != evidence.assessment_id:
                 raise ValueError(
                     f"Evidence integrity violation: Asset {evidence.asset_id} belongs to assessment "
@@ -104,7 +107,6 @@ class EvidenceRepository:
             stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
-
 
     def update(self, evidence: Evidence) -> Evidence:
         model = self.session.get(EvidenceModel, evidence.evidence_id)

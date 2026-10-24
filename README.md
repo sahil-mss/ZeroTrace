@@ -234,6 +234,11 @@ python -m venv .venv
 # Upgrade pip and install dependencies
 python -m pip install --upgrade pip
 pip install -r requirements.txt
+pip install -e .
+
+# Run Database Migrations (SQLite)
+$env:DATABASE_URL="sqlite:///zerotrace.db"
+alembic upgrade head
 ```
 
 #### On Linux / macOS (Bash / Zsh):
@@ -247,6 +252,11 @@ source .venv/bin/activate
 # Upgrade pip and install dependencies
 pip install --upgrade pip
 pip install -r requirements.txt
+pip install -e .
+
+# Run Database Migrations (SQLite)
+export DATABASE_URL="sqlite:///zerotrace.db"
+alembic upgrade head
 ```
 
 ### 3. Frontend Setup (Node.js)
@@ -277,6 +287,13 @@ The application runs out of the box using secure default settings (deterministic
 | `AI_TIMEOUT_SECONDS` | `10.0` | Timeout in seconds for LLM network requests. |
 | `AI_ALLOW_EXTERNAL_CALLS` | `false` | Explicit consent flag (`true`/`false`). Must be `true` to allow traffic to non-local endpoints. |
 | `API_AUTH_TOKEN` | `""` | Optional bearer/header token for backend API authentication. Empty allows local lab requests. |
+| `OSINT_NETWORK_ENABLED` | `false` | Master switch for network-backed OSINT adapters. Disabled by default for offline safety. |
+| `OSINT_DNS_ENABLED` | `false` | Enable live DNS metadata queries (`A`, `AAAA`, `CNAME`, `MX`, `NS`). Disabled by default. |
+| `OSINT_CT_ENABLED` | `false` | Enable live Certificate Transparency lookups (crt.sh). Disabled by default. |
+| `OSINT_REQUEST_TIMEOUT_SECONDS` | `10.0` | Timeout per OSINT external query in seconds. |
+| `OSINT_MAX_RESPONSE_BYTES` | `1000000` | Maximum allowed response body size (1 MB). |
+| `OSINT_RATE_LIMIT_PER_MINUTE` | `30` | Maximum allowed external queries per minute per source. |
+| `OSINT_MAX_RECORDS_PER_COLLECTION` | `100` | Maximum records accepted per collection run. |
 
 ### Example Local Development Configuration (.env)
 Create an optional `.env` file in the root directory for custom setups:
@@ -297,20 +314,19 @@ ZeroTrace requires two processes: the FastAPI backend and the Vite frontend.
 #### Terminal 1 — Start the Backend Server:
 ```powershell
 # Windows
-.venv\Scripts\python.exe -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 
 # Linux / macOS
 source .venv/bin/activate
-uvicorn backend.app:app --host 127.0.0.1 --port 8000
+uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 ```
-*Verify backend health:* Open `http://127.0.0.1:8000/api/health` in your browser. Expected response:
+*Verify backend health:* Open `http://127.0.0.1:8000/health` in your browser. Expected response:
 ```json
 {
   "status": "healthy",
-  "service": "ZeroTrace Backend Core",
-  "ai_provider": "deterministic",
-  "ai_model": "llama3.2",
-  "external_calls_allowed": false
+  "app_name": "ZeroTrace",
+  "version": "0.1.0",
+  "environment": "development"
 }
 ```
 
@@ -520,39 +536,74 @@ classDiagram
 
 ## Testing and Quality Verification
 
-ZeroTrace includes full automated test suites for both backend and frontend layers.
+ZeroTrace includes comprehensive automated test suites for both backend and frontend layers. All tests run deterministically with zero live network calls.
 
 ### Run All Tests
 
-#### 1. Backend Pytest Suite
+#### 1. Backend Pytest Suite (Unit & Integration)
 ```powershell
 # From repository root
 .venv\Scripts\python.exe -m pytest tests/ -v
 ```
-*Expected Result:* **22 passed** in ~0.80s.
+*Expected Result:* **140 passed** in ~15s.
+- `tests/unit/test_session10_adapters.py`: DNS metadata and CT adapter tests, missing vs error distinction, rate limits, caching, and candidate classification.
+- `tests/unit/test_osint_framework.py`: Mock collection, deduplication, malformed data, timeouts, cancellation.
+- `tests/unit/test_scope_validator.py`: Scope rules, CIDR parsing, IDN Punycode, lookalike domain rejection.
+- `tests/unit/test_evidence_store.py`: SHA-256 evidence hashing and tamper detection.
+- `tests/unit/test_asset_normalizer.py`: Asset deduplication and scope tagging.
+- `tests/integration/test_end_to_end_session9.py`: 15-step end-to-end integration and 9 negative/regression scenarios.
+- `tests/integration/test_orchestrator_and_api.py`: Job lifecycle, cancellation, and API routes.
+- `tests/integration/test_api_endpoints.py`: Assessment management, approvals, assets, evidence.
 - `tests/test_schemas.py`: Schema validation, evidence clamping, and citation validation.
 - `tests/test_ai_layer.py`: Adapter prompt building, network timeouts, and fallback mechanisms.
 - `tests/test_ai_and_reporting.py`: Report compilation and AI data flow.
 - `tests/test_upstream_integration.py`: Normalizer and upstream payload mapping.
 
-#### 2. Frontend Vitest Suite
+#### 2. Backend Code Quality & Linting
+```powershell
+# Run Ruff lint check
+.venv\Scripts\ruff.exe check .
+
+# Check code formatting
+.venv\Scripts\ruff.exe format --check .
+```
+*Expected Result:* **0 errors**, all files formatted cleanly.
+
+#### 3. Database Migration Verification
+```powershell
+# Run migrations against a temporary test database
+$env:DATABASE_URL="sqlite:///test_temp.db"
+.venv\Scripts\alembic.exe upgrade head
+Remove-Item test_temp.db
+```
+
+#### 4. Frontend Vitest Suite
 ```powershell
 # From frontend directory
 cd frontend
 npm run test -- --run
 ```
 *Expected Result:* **22 passed across 3 test files** in ~4.4s.
-- `src/tests/findingsExplorer.test.ts`: Search, filter toggles, and sorting.
-- `src/tests/aiAnalysisIntegration.test.ts`: API client calls, loading state, error handling, and mock fallback.
-- `src/tests/reportGeneration.test.ts`: Section compilation, count calculations, and HTML escaping.
 
-#### 3. Frontend Production Build & Linter Check
+#### 5. Frontend Production Build & Linter Check
 ```powershell
 cd frontend
 npm run lint
 npm run build
 ```
 *Expected Result:* Oxlint passes with **0 errors**, TypeScript compile succeeds, Vite production build outputs to `dist/`.
+
+---
+
+## Detailed Documentation Directory
+
+For in-depth architectural and developer documentation, see the [`docs/`](docs/) directory:
+- [docs/architecture.md](docs/architecture.md): Backend component architecture, data flow, and Mermaid diagrams.
+- [docs/contracts.md](docs/contracts.md): Canonical data contracts, imports, and schema versioning rules.
+- [docs/api.md](docs/api.md): Complete REST API reference with PowerShell and curl examples.
+- [docs/security.md](docs/security.md): Security architecture, deterministic scope policy, and safe testing standards.
+- [docs/integration.md](docs/integration.md): Team integration and handoff guide for Persons 2 and 3.
+- [docs/person1-plan.md](docs/person1-plan.md): Person 1 roadmap, implementation milestones, and verified completion status.
 
 ---
 
