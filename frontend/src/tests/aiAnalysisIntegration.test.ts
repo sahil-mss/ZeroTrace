@@ -165,4 +165,24 @@ describe('AI Analysis Service & Client Interaction', () => {
     expect((result.evidence_facts || []).length).toBeGreaterThan(0);
     expect(result.summary).toContain('SQL Injection');
   });
+
+  it('8. checkHealth returns ok: true when backend responds with 200', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 'healthy' }),
+    });
+
+    const res = await apiClient.checkHealth();
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe('healthy');
+  });
+
+  it('9. checkHealth returns ok: false when backend is offline or unreachable', async () => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const res = await apiClient.checkHealth();
+    expect(res.ok).toBe(false);
+    expect(res.status).toBe('unreachable');
+  });
 });

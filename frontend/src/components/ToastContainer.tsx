@@ -9,6 +9,8 @@ export const ToastContainer: React.FC = () => {
 
   return (
     <div
+      role="status"
+      aria-live="polite"
       style={{
         position: 'fixed',
         bottom: '1.5rem',

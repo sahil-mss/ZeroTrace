@@ -41,6 +41,27 @@ class ApiService {
   }
 
   /**
+   * Check backend health status
+   */
+  public async checkHealth(): Promise<{ status: string; ok: boolean }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+      const response = await fetch(`${this.baseUrl}/api/health`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (response.ok) {
+        return { status: 'healthy', ok: true };
+      }
+      return { status: `error_${response.status}`, ok: false };
+    } catch {
+      clearTimeout(timeoutId);
+      return { status: 'unreachable', ok: false };
+    }
+  }
+
+  /**
    * Deterministic local fallback generator for dev mock adapter
    */
   private generateMockAnalysis(finding: Finding, evidence: Evidence[]): AIAnalysis {
