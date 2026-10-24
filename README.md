@@ -153,7 +153,7 @@ flowchart TD
 ## Project Directory Structure
 
 ```text
-Vibathon/
+ZeroTrace/
 ├── backend/
 │   ├── app.py                     # FastAPI application routes, CORS, and health endpoints
 │   └── adapter.py                 # Upstream normalizer and integration adapter
@@ -545,15 +545,15 @@ ZeroTrace includes comprehensive automated test suites for both backend and fron
 # From repository root
 .venv\Scripts\python.exe -m pytest tests/ -v
 ```
-*Expected Result:* **140 passed** in ~15s.
-- `tests/unit/test_session10_adapters.py`: DNS metadata and CT adapter tests, missing vs error distinction, rate limits, caching, and candidate classification.
-- `tests/unit/test_osint_framework.py`: Mock collection, deduplication, malformed data, timeouts, cancellation.
+*Expected Result:* **270 passed** in ~25s across 30 test suites.
+- `tests/unit/test_api_endpoints.py`: Assessment management, approvals, assets, evidence.
+- `tests/unit/test_session10_adapters.py`: DNS metadata and CT adapter tests, rate limits, caching, and classification.
+- `tests/unit/test_osint_framework.py`: Collection, deduplication, timeouts, cancellation.
 - `tests/unit/test_scope_validator.py`: Scope rules, CIDR parsing, IDN Punycode, lookalike domain rejection.
 - `tests/unit/test_evidence_store.py`: SHA-256 evidence hashing and tamper detection.
 - `tests/unit/test_asset_normalizer.py`: Asset deduplication and scope tagging.
-- `tests/integration/test_end_to_end_session9.py`: 15-step end-to-end integration and 9 negative/regression scenarios.
+- `tests/integration/test_end_to_end_session9.py`: End-to-end integration and negative/regression scenarios.
 - `tests/integration/test_orchestrator_and_api.py`: Job lifecycle, cancellation, and API routes.
-- `tests/integration/test_api_endpoints.py`: Assessment management, approvals, assets, evidence.
 - `tests/test_schemas.py`: Schema validation, evidence clamping, and citation validation.
 - `tests/test_ai_layer.py`: Adapter prompt building, network timeouts, and fallback mechanisms.
 - `tests/test_ai_and_reporting.py`: Report compilation and AI data flow.
@@ -637,9 +637,9 @@ For in-depth architectural and developer documentation, see the [`docs/`](docs/)
 - **Cause**: The FastAPI backend is not running on port 8000.
 - **Fix**: Start the backend in a separate terminal:
   ```powershell
-  .venv\Scripts\python.exe -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+  .venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
   ```
-  Verify by visiting `http://127.0.0.1:8000/api/health`.
+  Verify by visiting `http://127.0.0.1:8000/health`.
 
 ### 3. Port 8000 or Port 5173 is already in use
 - **Cause**: A lingering process or another development server is running.
