@@ -1,0 +1,7 @@
+<nmaprun scanner="nmap" version="7.94">
+  <host>
+    <address addr="127.0.0.1" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="3000">
+        <state state="open"
+        <!-- Truncated unclosed XML tags simulation -->

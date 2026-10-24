@@ -1,0 +1,72 @@
+{
+  "alerts": [
+    {
+      "id": "1",
+      "pluginId": "40012",
+      "alert": "Cross Site Scripting (Reflected)",
+      "name": "Cross Site Scripting (Reflected)",
+      "risk": "High",
+      "confidence": "Medium",
+      "description": "Cross-site Scripting (XSS) is an attack where malicious scripts are injected into trusted websites.",
+      "url": "http://127.0.0.1:3000/#/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+      "param": "q",
+      "attack": "<script>alert(1)</script>",
+      "evidence": "<script>alert(1)</script>",
+      "cweid": "79",
+      "wascid": "8",
+      "solution": "Ensure that all user-supplied data is appropriately context-encoded before rendering in HTML.",
+      "reference": "https://owasp.org/www-community/attacks/xss/"
+    },
+    {
+      "id": "2",
+      "pluginId": "10020",
+      "alert": "Anti-CSRF Tokens Check",
+      "name": "Anti-CSRF Tokens Check",
+      "risk": "Medium",
+      "confidence": "High",
+      "description": "No Anti-CSRF tokens were found in a HTML submission form.",
+      "url": "http://127.0.0.1:3000/rest/user/login",
+      "param": "email",
+      "attack": "",
+      "evidence": "<form action=\"/rest/user/login\" method=\"post\">",
+      "cweid": "352",
+      "wascid": "9",
+      "solution": "Phase in Anti-CSRF tokens for sensitive state-changing forms.",
+      "reference": "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
+    },
+    {
+      "id": "3",
+      "pluginId": "10038",
+      "alert": "Content Security Policy (CSP) Header Not Set",
+      "name": "Content Security Policy (CSP) Header Not Set",
+      "risk": "Low",
+      "confidence": "High",
+      "description": "Content Security Policy (CSP) is an added layer of security that helps detect and mitigate attacks.",
+      "url": "http://127.0.0.1:3000/",
+      "param": "",
+      "attack": "",
+      "evidence": "",
+      "cweid": "693",
+      "wascid": "15",
+      "solution": "Ensure that your web server transmits the Content-Security-Policy header.",
+      "reference": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP"
+    },
+    {
+      "id": "4",
+      "pluginId": "10049",
+      "alert": "Storable and Cacheable Content",
+      "name": "Storable and Cacheable Content",
+      "risk": "Informational",
+      "confidence": "Low",
+      "description": "The response contents are storable by caching components such as proxies.",
+      "url": "http://127.0.0.1:3000/public/images/carousel/1.jpg",
+      "param": "",
+      "attack": "",
+      "evidence": "Cache-Control: public, max-age=14400",
+      "cweid": "524",
+      "wascid": "13",
+      "solution": "Review Cache-Control directives for sensitive endpoints.",
+      "reference": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"
+    }
+  ]
+}

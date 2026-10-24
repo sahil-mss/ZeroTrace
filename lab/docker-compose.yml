@@ -1,0 +1,32 @@
+# AegisPT Reproducible Security Testing Lab
+# Application: OWASP Juice Shop (Deliberately Vulnerable Web Application)
+# Purpose: Authorized security evaluation, scanner benchmarking, and research.
+#
+# IMPORTANT SECURITY CONTROLS:
+# - Ports are strictly bound to loopback (127.0.0.1) to prevent LAN or WAN exposure.
+# - Do NOT change 127.0.0.1 to 0.0.0.0 or expose this container to public networks.
+
+services:
+  juice-shop:
+    image: bkimminich/juice-shop:v17.1.1
+    container_name: aegispt-lab-juice-shop
+    restart: unless-stopped
+    ports:
+      # Strictly bind to host loopback interface only
+      - "127.0.0.1:3000:3000"
+    environment:
+      # Run with unsafe development configuration to permit educational vulnerability testing
+      - NODE_ENV=unsafe
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - aegispt-internal-lab
+
+networks:
+  aegispt-internal-lab:
+    driver: bridge
+    internal: false

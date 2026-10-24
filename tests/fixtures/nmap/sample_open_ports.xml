@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sV -oX sample_open_ports.xml 127.0.0.1" start="1690000000" version="7.94">
+  <host starttime="1690000000" endtime="1690000010">
+    <status state="up" reason="localhost-response"/>
+    <address addr="127.0.0.1" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="localhost" type="user"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="3000">
+        <state state="open" reason="syn-ack"/>
+        <service name="http" product="Node.js Express framework" version="17.1.1" extrainfo="OWASP Juice Shop" method="probed" conf="10"/>
+      </port>
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack"/>
+        <service name="http" product="Apache httpd" version="2.4.52" method="probed" conf="10"/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>

@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Missing Headers Alert",
+    "risk": "Low",
+    "description": "Some HTTP header is missing.",
+    "url": "http://127.0.0.1:3000/api"
+  }
+]
