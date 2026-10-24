@@ -10,15 +10,26 @@ import {
   FileText,
   Activity,
   Lock,
+  X,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
-  const { activePage, setActivePage, findings, currentAssessmentId } = useApp();
+  const { activePage, setActivePage, findings, currentAssessmentId, sidebarOpen, setSidebarOpen } = useApp();
 
   const assessmentFindings = findings.filter((f) => f.assessment_id === currentAssessmentId);
   const criticalCount = assessmentFindings.filter(
     (f) => f.severity === 'critical' || f.severity === 'high'
   ).length;
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sidebarOpen, setSidebarOpen]);
 
   const navItems: { id: NavPage; label: string; icon: React.FC<{ size?: number }> }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -31,33 +42,37 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside
-      style={{
-        width: '240px',
-        backgroundColor: 'var(--color-surface)',
-        borderRight: '1px solid var(--color-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        flexShrink: 0,
-      }}
-    >
-      {/* Brand Header */}
-      <div
-        style={{
-          padding: '1.25rem 1.25rem 1rem 1.25rem',
-          borderBottom: '1px solid var(--color-border)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div
-            style={{
-              width: '26px',
-              height: '26px',
-              backgroundColor: 'var(--color-accent)',
-              borderRadius: '3px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        {/* Brand Header */}
+        <div
+          style={{
+            padding: '1.25rem 1.25rem 1rem 1.25rem',
+            borderBottom: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div
+              style={{
+                width: '26px',
+                height: '26px',
+                backgroundColor: 'var(--color-accent)',
+                borderRadius: '3px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               color: 'var(--color-accent-contrast)',
               fontWeight: 700,
               fontSize: '0.8rem',
@@ -91,6 +106,15 @@ export const Sidebar: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <button
+          className="btn btn-icon sidebar-close-btn"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close navigation sidebar"
+          style={{ padding: '0.25rem' }}
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Nav List */}
@@ -102,7 +126,10 @@ export const Sidebar: React.FC = () => {
           return (
             <button
               key={item.id}
-              onClick={() => setActivePage(item.id)}
+              onClick={() => {
+                setActivePage(item.id);
+                setSidebarOpen(false);
+              }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -163,5 +190,6 @@ export const Sidebar: React.FC = () => {
         </div>
       </div>
     </aside>
-  );
+  </>
+);
 };

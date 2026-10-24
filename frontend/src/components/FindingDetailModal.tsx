@@ -718,7 +718,7 @@ export const FindingDetailModal: React.FC = () => {
                   </div>
 
                   {/* 4. Severity & Confidence with Grounded Justifications */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div className="modal-side-by-side" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                     <div style={{ padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '4px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
                         <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase' }}>

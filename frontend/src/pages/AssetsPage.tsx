@@ -66,7 +66,7 @@ export const AssetsPage: React.FC = () => {
       </div>
 
       {/* Asset Inventory Table */}
-      <div className="table-container">
+      <div className="table-container table-scroll">
         <table className="data-table">
           <thead>
             <tr>

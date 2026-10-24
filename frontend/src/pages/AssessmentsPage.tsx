@@ -55,7 +55,7 @@ export const AssessmentsPage: React.FC = () => {
       </div>
 
       {/* Table of Assessments */}
-      <div className="table-container">
+      <div className="table-container table-scroll">
         <table className="data-table">
           <thead>
             <tr>

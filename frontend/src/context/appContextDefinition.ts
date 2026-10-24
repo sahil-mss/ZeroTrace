@@ -48,6 +48,8 @@ export interface AppContextType {
   startAssessment: (id: string) => void;
   cancelAssessment: (id: string) => void;
   createNewAssessment: (name: string, target: string, policy: string) => void;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);

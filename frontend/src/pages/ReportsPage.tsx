@@ -292,7 +292,7 @@ export const ReportsPage: React.FC = () => {
               Zero assets discovered or assigned to this assessment record.
             </div>
           ) : (
-            <div className="table-container">
+            <div className="table-container table-scroll">
               <table className="data-table">
                 <thead>
                   <tr>
@@ -612,7 +612,7 @@ export const ReportsPage: React.FC = () => {
               No prioritized remediation actions required for this assessment.
             </div>
           ) : (
-            <div className="table-container">
+            <div className="table-container table-scroll">
               <table className="data-table">
                 <thead>
                   <tr>

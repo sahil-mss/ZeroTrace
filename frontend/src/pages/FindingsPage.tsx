@@ -296,7 +296,7 @@ export const FindingsPage: React.FC = () => {
       </div>
 
       {/* Findings Table */}
-      <div className="table-container">
+      <div className="table-container table-scroll">
         <table className="data-table">
           <thead>
             <tr>

@@ -68,7 +68,7 @@ export const ActivityPage: React.FC = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="table-container">
+      <div className="table-container table-scroll">
         <table className="data-table">
           <thead>
             <tr>

@@ -50,6 +50,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState<string>('');
 
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+
+  const handleSetActivePage = (page: NavPage) => {
+    setActivePage(page);
+    setSidebarOpen(false);
+  };
+
   const updateFindingAnalysis = (findingId: string, analysis: AIAnalysis) => {
     setAiAnalysis((prev) => ({
       ...prev,
@@ -146,7 +153,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         theme,
         toggleTheme,
         activePage,
-        setActivePage,
+        setActivePage: handleSetActivePage,
         currentAssessmentId,
         setCurrentAssessmentId,
         currentAssessment,
@@ -168,6 +175,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         startAssessment,
         cancelAssessment,
         createNewAssessment,
+        sidebarOpen,
+        setSidebarOpen,
       }}
     >
       {children}

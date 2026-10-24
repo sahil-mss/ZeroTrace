@@ -249,7 +249,7 @@ export const OverviewPage: React.FC = () => {
           </button>
         </div>
 
-        <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
+        <div className="table-container table-scroll" style={{ border: 'none', borderRadius: 0 }}>
           <table className="data-table">
             <thead>
               <tr>

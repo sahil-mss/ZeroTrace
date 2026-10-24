@@ -8,6 +8,7 @@ import {
   Square,
   Play,
   Terminal,
+  Menu,
 } from 'lucide-react';
 import { AssessmentStatusBadge } from './Badge';
 
@@ -23,24 +24,24 @@ export const TopBar: React.FC = () => {
     setGlobalSearch,
     startAssessment,
     cancelAssessment,
+    sidebarOpen,
+    setSidebarOpen,
   } = useApp();
 
   return (
-    <header
-      style={{
-        height: '56px',
-        backgroundColor: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 1.5rem',
-        gap: '1rem',
-      }}
-    >
-      {/* Left: Assessment Selector & Active Target */}
+    <header className="topbar">
+      {/* Left: Hamburger & Assessment Selector */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-text-dim)' }}>
+        <button
+          className="btn btn-icon sidebar-toggle"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label={sidebarOpen ? 'Close navigation sidebar' : 'Open navigation sidebar'}
+          aria-expanded={sidebarOpen}
+        >
+          <Menu size={18} />
+        </button>
+
+        <div className="scope-indicator" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-text-dim)' }}>
           <Shield size={16} />
           <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Scope:</span>
         </div>
