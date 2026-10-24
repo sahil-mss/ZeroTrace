@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import { Terminal } from 'lucide-react';
 
 const PSYCH_STAGES = [
@@ -17,40 +17,28 @@ export const AssessmentProgressBar: React.FC = () => {
   const { currentAssessment } = useApp();
   const [progress, setProgress] = useState(0);
   const [stageText, setStageText] = useState('');
-  const [isCompleted, setIsCompleted] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
   const isRunning = currentAssessment?.status === 'in_progress';
+  const isCompleted = currentAssessment?.status === 'completed' || progress >= 100;
+  const effectiveProgress = currentAssessment?.status === 'completed' ? 100 : progress;
 
   useEffect(() => {
     if (!isRunning) {
-      if (currentAssessment?.status === 'completed') {
-        setProgress(100);
-        setIsCompleted(true);
-        setStageText('Assessment complete · Scope verification locked');
-      } else {
-        setProgress(0);
-        setIsCompleted(false);
-        setStageText('');
-      }
       if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
 
-    // When in_progress starts:
-    setIsCompleted(false);
-    setProgress(5);
-    setStageText(PSYCH_STAGES[0].label);
-
     // Psychological timing: rapid initial jump, tense hesitation around 45-55% and 82-87%, then swift finish
     intervalRef.current = window.setInterval(() => {
       setProgress((prev) => {
-        let next = prev;
-        if (prev < 25) {
+        const base = prev === 0 ? 5 : prev;
+        let next = base;
+        if (base < 25) {
           next += 1.8 + Math.random() * 2.2;
-        } else if (prev >= 25 && prev < 48) {
+        } else if (base >= 25 && base < 48) {
           next += 0.9 + Math.random() * 1.1;
-        } else if (prev >= 48 && prev < 62) {
+        } else if (base >= 48 && base < 62) {
           // Tension plateau
           next += 0.25 + Math.random() * 0.45;
         } else if (prev >= 62 && prev < 84) {
@@ -64,7 +52,6 @@ export const AssessmentProgressBar: React.FC = () => {
 
         if (next >= 100) {
           next = 100;
-          setIsCompleted(true);
           setStageText('Assessment complete · Scope verification locked');
           if (intervalRef.current) clearInterval(intervalRef.current);
         } else {
@@ -85,11 +72,14 @@ export const AssessmentProgressBar: React.FC = () => {
     };
   }, [isRunning, currentAssessment?.status]);
 
-  if (!isRunning && !isCompleted && progress === 0) {
+  if (!isRunning && !isCompleted && effectiveProgress === 0) {
     return null;
   }
 
-  const rounded = Math.floor(progress);
+  const rounded = Math.floor(effectiveProgress);
+  const displayStageText = isCompleted
+    ? 'Assessment complete · Scope verification locked'
+    : stageText || PSYCH_STAGES[0].label;
 
   return (
     <div
@@ -166,7 +156,7 @@ export const AssessmentProgressBar: React.FC = () => {
         <div
           style={{
             height: '100%',
-            width: `${progress}%`,
+            width: `${effectiveProgress}%`,
             backgroundColor: isCompleted ? '#10b981' : '#f59e0b',
             background: isCompleted
               ? 'linear-gradient(90deg, #059669, #10b981)'
@@ -181,7 +171,7 @@ export const AssessmentProgressBar: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.74rem', color: '#a3a3a3' }}>
           <Terminal size={12} style={{ color: '#737373' }} />
-          <span className="font-mono" style={{ color: '#d4d4d4' }}>{stageText}</span>
+          <span className="font-mono" style={{ color: '#d4d4d4' }}>{displayStageText}</span>
         </div>
         <span style={{ fontSize: '0.7rem', color: '#52525b', fontFamily: 'monospace' }}>
           {isCompleted ? 'ALL VECTORS EVALUATED' : 'LIVE TELEMETRY'}

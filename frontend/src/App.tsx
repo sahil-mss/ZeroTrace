@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppProvider, useApp } from './context/AppContext';
+import { AppProvider } from './context/AppContext';
+import { useApp } from './context/useApp';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { FindingDetailModal } from './components/FindingDetailModal';

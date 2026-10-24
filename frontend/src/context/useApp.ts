@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { AppContext } from './AppContext';
+import { AppContext } from './appContextDefinition';
 
 export const useApp = () => {
   const context = useContext(AppContext);
@@ -8,3 +8,5 @@ export const useApp = () => {
   }
   return context;
 };
+
+export type { NavPage, AppContextType } from './appContextDefinition';

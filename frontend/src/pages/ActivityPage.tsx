@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import { CheckCircle2, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
 export const ActivityPage: React.FC = () => {

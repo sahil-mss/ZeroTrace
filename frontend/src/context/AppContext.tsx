@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type {
   Assessment,
   Asset,
@@ -16,49 +16,8 @@ import {
   DEMO_AI_ANALYSIS,
   DEMO_ACTIVITY_LOGS,
 } from '../data/demoData';
-
-export type NavPage =
-  | 'overview'
-  | 'assessments'
-  | 'assets'
-  | 'findings'
-  | 'ai-analysis'
-  | 'reports'
-  | 'activity';
-
-interface AppContextType {
-  theme: 'dark' | 'light';
-  toggleTheme: () => void;
-  activePage: NavPage;
-  setActivePage: (page: NavPage) => void;
-  currentAssessmentId: string;
-  setCurrentAssessmentId: (id: string) => void;
-  currentAssessment: Assessment | undefined;
-  assessments: Assessment[];
-  assets: Asset[];
-  findings: Finding[];
-  evidence: Evidence[];
-  aiAnalysis: Record<string, AIAnalysis>;
-  setAiAnalysis: React.Dispatch<React.SetStateAction<Record<string, AIAnalysis>>>;
-  updateFindingAnalysis: (findingId: string, analysis: AIAnalysis) => void;
-  activityLogs: ActivityEvent[];
-  selectedFindingId: string | null;
-  setSelectedFindingId: (id: string | null) => void;
-  globalSearch: string;
-  setGlobalSearch: (term: string) => void;
-  toasts: ToastMessage[];
-  addToast: (
-    title: string,
-    message?: string,
-    type?: 'info' | 'success' | 'warning' | 'error'
-  ) => void;
-  removeToast: (id: string) => void;
-  startAssessment: (id: string) => void;
-  cancelAssessment: (id: string) => void;
-  createNewAssessment: (name: string, target: string, policy: string) => void;
-}
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
+import { AppContext } from './appContextDefinition';
+import type { NavPage } from './appContextDefinition';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Theme initialization
@@ -215,6 +174,3 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     </AppContext.Provider>
   );
 };
-
-export { AppContext };
-export { useApp } from './useApp';

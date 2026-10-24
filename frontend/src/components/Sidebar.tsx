@@ -1,6 +1,6 @@
 import React from 'react';
-import { useApp } from '../context/AppContext';
-import type { NavPage } from '../context/AppContext';
+import { useApp } from '../context/useApp';
+import type { NavPage } from '../context/useApp';
 import {
   LayoutDashboard,
   ShieldAlert,

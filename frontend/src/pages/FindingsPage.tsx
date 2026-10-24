@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import { SeverityBadge, VerificationBadge, ConfidenceBadge } from '../components/Badge';
 import {
   Search,

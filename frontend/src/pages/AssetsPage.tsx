@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import { Server, Globe, Cpu } from 'lucide-react';
 
 export const AssetsPage: React.FC = () => {
