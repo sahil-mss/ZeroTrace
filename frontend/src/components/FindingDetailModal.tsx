@@ -10,13 +10,28 @@ import {
   AlertTriangle,
   Info,
   CheckCircle2,
+  Loader2,
+  RefreshCw,
+  Cpu,
+  ShieldAlert,
 } from 'lucide-react';
 import { SeverityBadge, VerificationBadge, ConfidenceBadge } from './Badge';
+import { apiClient } from '../api/client';
 
 export const FindingDetailModal: React.FC = () => {
-  const { selectedFindingId, setSelectedFindingId, findings, evidence, aiAnalysis, addToast } =
-    useApp();
+  const {
+    selectedFindingId,
+    setSelectedFindingId,
+    findings,
+    evidence,
+    aiAnalysis,
+    updateFindingAnalysis,
+    addToast,
+  } = useApp();
+
   const [copiedEvidenceId, setCopiedEvidenceId] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   if (!selectedFindingId) return null;
 
@@ -29,6 +44,28 @@ export const FindingDetailModal: React.FC = () => {
   const isFalsePositive = finding.verification_status === 'false_positive';
   const isConfirmed = finding.verification_status === 'confirmed';
   const hasEvidence = findingEvidence.length > 0;
+
+  const handleAnalyzeFinding = async () => {
+    if (isAnalyzing) return; // Prevent duplicate concurrent submissions
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+
+    try {
+      const result = await apiClient.analyzeFinding(finding, findingEvidence);
+      updateFindingAnalysis(finding.id, result);
+      addToast(
+        'Analysis Complete',
+        `Generated structured AI triage for ${finding.id}`,
+        'success'
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error during AI analysis';
+      setAnalysisError(message);
+      addToast('Analysis Failed', message, 'error');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleCopyRaw = (evId: string, text?: string) => {
     if (!text) return;
@@ -419,6 +456,8 @@ export const FindingDetailModal: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.5rem',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -427,18 +466,59 @@ export const FindingDetailModal: React.FC = () => {
                   AI Analysis & Triage (Inference Layer — Advisory Only)
                 </span>
               </div>
-              <span
-                style={{
-                  fontSize: '0.68rem',
-                  color: 'var(--color-text-dim)',
-                  backgroundColor: 'var(--color-surface)',
-                  padding: '0.1rem 0.4rem',
-                  borderRadius: '3px',
-                  border: '1px solid var(--color-border)',
-                }}
-              >
-                Model Advisory
-              </span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {/* Source Attribution Badge */}
+                {analysis && (
+                  <span
+                    data-testid="analysis-source-badge"
+                    style={{
+                      fontSize: '0.68rem',
+                      color: analysis.is_rule_based_fallback ? 'var(--color-sev-medium)' : 'var(--color-accent)',
+                      backgroundColor: 'var(--color-surface)',
+                      padding: '0.15rem 0.45rem',
+                      borderRadius: '3px',
+                      border: '1px solid var(--color-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <Cpu size={12} />
+                    {analysis.is_rule_based_fallback
+                      ? `Deterministic Rule-Based Fallback (${analysis.analysis_provider || 'Non-LLM'})`
+                      : `Configured Model (${analysis.analysis_provider || 'LLM'})`}
+                  </span>
+                )}
+
+                {/* Analyze Finding Button */}
+                <button
+                  onClick={handleAnalyzeFinding}
+                  disabled={isAnalyzing}
+                  className="btn btn-primary"
+                  style={{
+                    padding: '0.3rem 0.75rem',
+                    fontSize: '0.75rem',
+                    opacity: isAnalyzing ? 0.7 : 1,
+                    cursor: isAnalyzing ? 'not-allowed' : 'pointer',
+                  }}
+                  data-testid="analyze-finding-button"
+                  title="Run grounded AI triage against backend service"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 size={13} className="spin-animation" style={{ animation: 'spin 1s linear infinite' }} />
+                      <span>Analyzing Finding...</span>
+                    </>
+                  ) : (
+                    <>
+                      <BrainCircuit size={13} />
+                      <span>{analysis ? 'Re-analyze Finding' : 'Analyze Finding'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -457,35 +537,165 @@ export const FindingDetailModal: React.FC = () => {
                 <strong>Inference Disclaimer:</strong> AI analysis provides automated risk correlation and remediation guidance based on supplied records. AI reasoning is strictly advisory and <em>does not confirm vulnerabilities independently of captured evidence</em>.
               </div>
 
-              {!analysis ? (
+              {/* Error State with Retry Action */}
+              {analysisError && (
                 <div
+                  data-testid="analysis-error-banner"
                   style={{
-                    padding: '1.5rem',
-                    textAlign: 'center',
-                    color: 'var(--color-text-dim)',
-                    fontSize: '0.8125rem',
+                    padding: '0.75rem 1rem',
+                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid var(--color-sev-critical-border)',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
                   }}
                 >
-                  No AI analysis record generated for this finding yet.
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                    <AlertTriangle size={18} style={{ color: 'var(--color-sev-critical)', flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-sev-critical)' }}>
+                        Analysis Request Failed
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>
+                        {analysisError}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleAnalyzeFinding}
+                    disabled={isAnalyzing}
+                    className="btn btn-secondary"
+                    style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', flexShrink: 0 }}
+                    data-testid="retry-analysis-button"
+                  >
+                    <RefreshCw size={12} />
+                    <span>Retry Analysis</span>
+                  </button>
                 </div>
-              ) : (
-                <>
-                  {/* Executive Summary */}
+              )}
+
+              {/* Loading State Spinner */}
+              {isAnalyzing && (
+                <div
+                  data-testid="analysis-loading-state"
+                  style={{
+                    padding: '2.5rem 1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.75rem',
+                    backgroundColor: 'var(--color-surface-subtle)',
+                    borderRadius: '4px',
+                    border: '1px dashed var(--color-border)',
+                  }}
+                >
+                  <Loader2 size={28} style={{ color: 'var(--color-accent)', animation: 'spin 1s linear infinite' }} />
+                  <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-main)' }}>
+                    Generating Evidence-Grounded AI Triage
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textAlign: 'center', maxWidth: '420px' }}>
+                    Validating citations against captured scanner logs, applying anti-hallucination guardrails, and formulating remediation roadmap.
+                  </div>
+                </div>
+              )}
+
+              {!isAnalyzing && !analysis && (
+                <div
+                  data-testid="analysis-empty-state"
+                  style={{
+                    padding: '2rem 1.5rem',
+                    textAlign: 'center',
+                    backgroundColor: 'var(--color-surface-subtle)',
+                    borderRadius: '4px',
+                    border: '1px dashed var(--color-border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                  }}
+                >
+                  <BrainCircuit size={28} style={{ color: 'var(--color-text-dim)' }} />
+                  <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-main)' }}>
+                    No AI Analysis Generated Yet
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', maxWidth: '450px', margin: 0 }}>
+                    Select &quot;Analyze Finding&quot; to invoke the evidence-grounded AI analysis engine. The engine will synthesize empirical evidence facts, deduce technical impact, and propose remediation without hallucination.
+                  </p>
+                  <button
+                    onClick={handleAnalyzeFinding}
+                    className="btn btn-primary"
+                    style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem', marginTop: '0.4rem' }}
+                  >
+                    <BrainCircuit size={13} />
+                    <span>Analyze finding</span>
+                  </button>
+                </div>
+              )}
+
+              {!isAnalyzing && analysis && (
+                <div data-testid="analysis-results-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* Verification Status Warning when Unverified */}
+                  {isUnverified && (
+                    <div
+                      style={{
+                        padding: '0.65rem 0.85rem',
+                        backgroundColor: 'var(--color-sev-medium-bg)',
+                        border: '1px solid var(--color-sev-medium-border)',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.6rem',
+                      }}
+                    >
+                      <ShieldAlert size={16} style={{ color: 'var(--color-sev-medium)', flexShrink: 0 }} />
+                      <div>
+                        <strong>Verification Policy Notice:</strong> This finding has not undergone empirical exploit verification. In accordance with zero-trust AI rules, AI reasoning does <em>not</em> confirm this vulnerability.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 1. Summary */}
                   <div>
                     <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                      Executive Summary
+                      Summary
                     </h4>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-main)', lineHeight: 1.5 }}>
-                      {analysis.concise_summary}
+                    <p data-testid="analysis-summary" style={{ fontSize: '0.875rem', color: 'var(--color-text-main)', lineHeight: 1.5 }}>
+                      {analysis.summary || analysis.concise_summary}
                     </p>
                   </div>
 
-                  {/* Empirical Reasoning */}
+                  {/* 2. Evidence Facts Observed */}
+                  {((analysis.evidence_facts && analysis.evidence_facts.length > 0) || !hasEvidence) && (
+                    <div>
+                      <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+                        Evidence Facts Observed
+                      </h4>
+                      {analysis.evidence_facts && analysis.evidence_facts.length > 0 ? (
+                        <ul data-testid="analysis-evidence-facts" style={{ paddingLeft: '1.25rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
+                          {analysis.evidence_facts.map((fact, idx) => (
+                            <li key={idx} style={{ marginBottom: '0.25rem' }}>{fact}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontStyle: 'italic', padding: '0.5rem', backgroundColor: 'var(--color-surface-subtle)', borderRadius: '4px' }}>
+                          No empirical evidence facts captured. Verification probe recommended.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 3. AI Interpretation */}
                   <div>
                     <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                      Grounded Technical Reasoning
+                      AI Interpretation & Root Cause Analysis
                     </h4>
                     <div
+                      data-testid="analysis-interpretation"
                       style={{
                         padding: '0.85rem',
                         backgroundColor: 'var(--color-surface-subtle)',
@@ -495,62 +705,95 @@ export const FindingDetailModal: React.FC = () => {
                         border: '1px solid var(--color-border)',
                       }}
                     >
-                      {analysis.reasoning_summary}
+                      {analysis.interpretation && analysis.interpretation.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {analysis.interpretation.map((interp, idx) => (
+                            <p key={idx} style={{ margin: 0 }}>{interp}</p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p style={{ margin: 0 }}>{analysis.reasoning_summary || 'No detailed interpretation recorded.'}</p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Severity & Confidence Justifications */}
+                  {/* 4. Severity & Confidence with Grounded Justifications */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                     <div style={{ padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '4px' }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
-                        SEVERITY JUSTIFICATION ({analysis.severity_assessment.toUpperCase()})
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase' }}>
+                          Assessed Severity
+                        </span>
+                        <SeverityBadge severity={analysis.severity || analysis.severity_assessment || finding.severity} />
                       </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
+                        Severity Justification
+                      </div>
+                      <p data-testid="analysis-severity-justification" style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5, margin: 0 }}>
                         {analysis.severity_justification}
                       </p>
                     </div>
 
                     <div style={{ padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '4px' }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
-                        CONFIDENCE RATIONALE ({analysis.confidence_assessment.toUpperCase()})
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase' }}>
+                          Confidence Level
+                        </span>
+                        <ConfidenceBadge confidence={analysis.confidence || analysis.confidence_assessment || finding.confidence} />
                       </div>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
+                        Confidence Justification
+                      </div>
+                      <p data-testid="analysis-confidence-justification" style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.5, margin: 0 }}>
                         {analysis.confidence_justification}
                       </p>
                     </div>
                   </div>
 
-                  {/* Remediation */}
+                  {/* 5. Remediation Steps */}
                   <div>
                     <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                      Actionable Remediation Guidance
+                      Prioritized Remediation Roadmap
                     </h4>
-                    <pre
+                    <div
+                      data-testid="analysis-remediation"
                       style={{
-                        whiteSpace: 'pre-wrap',
-                        fontFamily: 'inherit',
-                        fontSize: '0.8125rem',
-                        lineHeight: 1.6,
                         padding: '0.85rem',
                         backgroundColor: 'var(--color-surface-subtle)',
                         borderRadius: '4px',
                         border: '1px solid var(--color-border)',
                         color: 'var(--color-text-main)',
+                        fontSize: '0.8125rem',
+                        lineHeight: 1.6,
                       }}
                     >
-                      {analysis.recommended_remediation}
-                    </pre>
+                      {analysis.remediation && analysis.remediation.length > 0 ? (
+                        <ol style={{ paddingLeft: '1.25rem', margin: 0 }}>
+                          {analysis.remediation.map((step, idx) => (
+                            <li key={idx} style={{ marginBottom: '0.35rem' }}>{step}</li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>
+                          {analysis.recommended_remediation || finding.remediation || 'Apply standard patch and hardening guidelines.'}
+                        </pre>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Scope Limitations & Evidence Gaps */}
-                  {analysis.limitations_and_missing_evidence.length > 0 && (
+                  {/* 6. Limitations / Information Still Needed */}
+                  {((analysis.limitations && analysis.limitations.length > 0) ||
+                    (analysis.limitations_and_missing_evidence && analysis.limitations_and_missing_evidence.length > 0)) && (
                     <div>
                       <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-dim)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                        Documented Evidence Gaps & Limitations
+                        Limitations & Information Still Needed
                       </h4>
-                      <ul style={{ paddingLeft: '1.25rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                        {analysis.limitations_and_missing_evidence.map((gap, i) => (
-                          <li key={i}>{gap}</li>
+                      <ul
+                        data-testid="analysis-limitations"
+                        style={{ paddingLeft: '1.25rem', fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.6, margin: 0 }}
+                      >
+                        {(analysis.limitations || analysis.limitations_and_missing_evidence || []).map((gap, i) => (
+                          <li key={i} style={{ marginBottom: '0.25rem' }}>{gap}</li>
                         ))}
                       </ul>
                     </div>
@@ -568,7 +811,7 @@ export const FindingDetailModal: React.FC = () => {
                     }}
                   >
                     <span style={{ color: 'var(--color-text-dim)', fontWeight: 600 }}>CITED EVIDENCE IDS:</span>
-                    {analysis.cited_evidence_ids.length === 0 ? (
+                    {(!analysis.cited_evidence_ids || analysis.cited_evidence_ids.length === 0) ? (
                       <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>None (Zero empirical evidence cited)</span>
                     ) : (
                       analysis.cited_evidence_ids.map((id) => (
@@ -589,7 +832,7 @@ export const FindingDetailModal: React.FC = () => {
                       ))
                     )}
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>

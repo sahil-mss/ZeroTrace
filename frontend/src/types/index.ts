@@ -66,15 +66,29 @@ export interface Finding {
 
 export interface AIAnalysis {
   finding_id: string;
+  // Core schema fields
+  summary?: string;
+  evidence_facts?: string[];
+  interpretation?: string[];
+  severity?: FindingSeverity;
+  severity_justification: string;
+  confidence?: ConfidenceLevel;
+  confidence_justification: string;
+  verification_status?: VerificationStatus;
+  remediation?: string[];
+  limitations?: string[];
+  requires_human_review?: boolean;
+  cited_evidence_ids: string[];
+  is_rule_based_fallback?: boolean;
+  analysis_provider?: string;
+
+  // Backward compatibility aliases
   concise_summary: string;
   reasoning_summary: string;
   severity_assessment: FindingSeverity;
-  severity_justification: string;
   confidence_assessment: ConfidenceLevel;
-  confidence_justification: string;
   recommended_remediation: string;
   limitations_and_missing_evidence: string[];
-  cited_evidence_ids: string[];
 }
 
 export interface ActivityEvent {

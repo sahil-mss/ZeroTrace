@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
-from typing import List, Optional, Set
-from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import Any, Dict, List, Optional, Set, Union
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from schemas.enums import (
     AssessmentStatus,
@@ -101,29 +101,130 @@ class AIAnalysis(BaseModel):
     AI-generated interpretation of empirical findings.
     Strictly grounded in provided evidence records to prevent hallucination.
     """
-    concise_summary: str = Field(..., min_length=1, description="High-level executive summary of the finding")
-    reasoning_summary: str = Field(
-        ..., min_length=1, description="Logical reasoning derived strictly from supplied evidence"
+    model_config = ConfigDict(populate_by_name=True)
+
+    summary: str = Field(
+        ...,
+        validation_alias=AliasChoices("summary", "concise_summary"),
+        min_length=1,
+        description="Concise executive summary of the finding"
     )
-    severity_assessment: FindingSeverity = Field(
-        ..., description="AI evaluation of severity based on contextual impact"
-    )
-    severity_justification: str = Field(..., min_length=1, description="Rationale for the assessed severity")
-    confidence_assessment: ConfidenceLevel = Field(
-        ..., description="AI confidence in this analysis based on evidence strength"
-    )
-    confidence_justification: str = Field(..., min_length=1, description="Rationale for confidence level")
-    recommended_remediation: str = Field(
-        ..., min_length=1, description="Prioritized, concrete technical remediation steps"
-    )
-    limitations_and_missing_evidence: List[str] = Field(
+    evidence_facts: List[str] = Field(
         default_factory=list,
-        description="Explicit gaps, uncertainties, or further verification steps needed"
+        description="Observed factual statements extracted directly from provided evidence"
+    )
+    interpretation: List[str] = Field(
+        default_factory=list,
+        description="Technical deductions, root causes, and security implications"
+    )
+    severity: FindingSeverity = Field(
+        ...,
+        validation_alias=AliasChoices("severity", "severity_assessment"),
+        description="Severity assessment grounded in the input"
+    )
+    severity_justification: str = Field(
+        ...,
+        min_length=1,
+        description="Explanation grounded in the input"
+    )
+    confidence: ConfidenceLevel = Field(
+        ...,
+        validation_alias=AliasChoices("confidence", "confidence_assessment"),
+        description="Confidence level grounded in the evidence"
+    )
+    confidence_justification: str = Field(
+        ...,
+        min_length=1,
+        description="Explanation grounded in the evidence"
+    )
+    verification_status: VerificationStatus = Field(
+        default=VerificationStatus.UNVERIFIED,
+        description="Assessed verification status"
+    )
+    remediation: List[str] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("remediation", "recommended_remediation"),
+        description="Prioritized, concrete technical remediation steps"
+    )
+    limitations: List[str] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("limitations", "limitations_and_missing_evidence"),
+        description="Documented evidence gaps and limitations"
+    )
+    requires_human_review: bool = Field(
+        default=True,
+        description="Indicates whether human analyst review is mandatory"
     )
     cited_evidence_ids: List[str] = Field(
         default_factory=list,
         description="List of Evidence IDs explicitly cited in the reasoning. Must be a subset of known evidence."
     )
+    is_rule_based_fallback: bool = Field(
+        default=False,
+        description="Flag indicating analysis was produced by deterministic fallback"
+    )
+    analysis_provider: str = Field(
+        default="deterministic_fallback",
+        description="Provider or model used for generation"
+    )
+
+    @field_validator("remediation", mode="before")
+    @classmethod
+    def parse_remediation_input(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            return [line.strip() for line in v.strip().splitlines() if line.strip()]
+        if isinstance(v, list):
+            return [str(item) for item in v]
+        return []
+
+    @field_validator("interpretation", mode="before")
+    @classmethod
+    def parse_interpretation_input(cls, v: Any) -> List[str]:
+        if isinstance(v, str):
+            return [line.strip() for line in v.strip().splitlines() if line.strip()]
+        if isinstance(v, list):
+            return [str(item) for item in v]
+        return []
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_legacy_inputs(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "concise_summary" in data and "summary" not in data:
+                data["summary"] = data["concise_summary"]
+            if "reasoning_summary" in data and not data.get("interpretation"):
+                data["interpretation"] = [data["reasoning_summary"]]
+            if "recommended_remediation" in data and "remediation" not in data:
+                data["remediation"] = data["recommended_remediation"]
+            if "limitations_and_missing_evidence" in data and "limitations" not in data:
+                data["limitations"] = data["limitations_and_missing_evidence"]
+        return data
+
+    @property
+    def concise_summary(self) -> str:
+        return self.summary
+
+    @property
+    def reasoning_summary(self) -> str:
+        if self.interpretation:
+            return " ".join(self.interpretation)
+        return self.severity_justification
+
+    @property
+    def severity_assessment(self) -> FindingSeverity:
+        return self.severity
+
+    @property
+    def confidence_assessment(self) -> ConfidenceLevel:
+        return self.confidence
+
+    @property
+    def recommended_remediation(self) -> str:
+        return "\n".join(self.remediation)
+
+    @property
+    def limitations_and_missing_evidence(self) -> List[str]:
+        return self.limitations
 
     def validate_citations(self, available_evidence_ids: Set[str]) -> None:
         """
