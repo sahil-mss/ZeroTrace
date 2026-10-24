@@ -1,0 +1,14 @@
+{
+  "lab_name": "OWASP Juice Shop Local Lab",
+  "target_url": "http://127.0.0.1:3000",
+  "host": "127.0.0.1",
+  "port": 3000,
+  "health_endpoint": "/",
+  "version_endpoint": "/rest/admin/application-version",
+  "timeout_seconds": 5.0,
+  "enforce_local_only": true,
+  "max_retries": 3,
+  "retry_delay_seconds": 1.0,
+  "synthetic_accounts_ready": true,
+  "container_name": "aegispt-lab-juice-shop"
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -p 5000 -oX sample_missing_service_info.xml 127.0.0.1" start="1690000000" version="7.94">
+  <host starttime="1690000000" endtime="1690000003">
+    <status state="up" reason="localhost-response"/>
+    <address addr="127.0.0.1" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="5000">
+        <state state="open" reason="syn-ack"/>
+        <!-- Intentionally omitting <service> tag to test robust missing-field handling -->
+      </port>
+    </ports>
+  </host>
+</nmaprun>

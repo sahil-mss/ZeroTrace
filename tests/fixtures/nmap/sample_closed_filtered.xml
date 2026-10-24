@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -p 22,8080 -oX sample_closed_filtered.xml 127.0.0.1" start="1690000000" version="7.94">
+  <host starttime="1690000000" endtime="1690000005">
+    <status state="up" reason="localhost-response"/>
+    <address addr="127.0.0.1" addrtype="ipv4"/>
+    <ports>
+      <port protocol="tcp" portid="22">
+        <state state="closed" reason="conn-refused"/>
+      </port>
+      <port protocol="tcp" portid="8080">
+        <state state="filtered" reason="no-response"/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>

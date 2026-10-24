@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -F -oX sample_multiple_hosts.xml 127.0.0.1 172.18.0.2" start="1690000000" version="7.94">
+  <host starttime="1690000000" endtime="1690000005">
+    <status state="up" reason="localhost-response"/>
+    <address addr="127.0.0.1" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="localhost" type="user"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="3000">
+        <state state="open" reason="syn-ack"/>
+        <service name="http" product="Node.js" version="17.1.1" method="probed" conf="10"/>
+      </port>
+    </ports>
+  </host>
+  <host starttime="1690000005" endtime="1690000010">
+    <status state="up" reason="arp-response"/>
+    <address addr="172.18.0.2" addrtype="ipv4"/>
+    <hostnames>
+      <hostname name="lab-juice-shop.internal" type="user"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack"/>
+        <service name="http" product="nginx" version="1.21.6" method="probed" conf="10"/>
+      </port>
+    </ports>
+  </host>
+</nmaprun>
