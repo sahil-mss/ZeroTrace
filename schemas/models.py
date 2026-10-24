@@ -4,6 +4,19 @@ Canonical models have moved to `aegis_common.models`.
 Re-exported here for backward compatibility.
 """
 
+from aegis_common.enums import (
+    AssessmentStatus,
+    AssetType,
+    AuditOutcome,
+    DataClassification,
+    EvidenceSourceType,
+    JobStatus,
+    ScopeStatus,
+    Severity,
+    TargetType,
+    TestPermissionLevel,
+    VerificationStatus,
+)
 from aegis_common.models import (
     Assessment,
     Asset,
@@ -24,6 +37,17 @@ from aegis_common.utils import (
 )
 
 __all__ = [
+    "AssessmentStatus",
+    "AssetType",
+    "AuditOutcome",
+    "DataClassification",
+    "EvidenceSourceType",
+    "JobStatus",
+    "ScopeStatus",
+    "Severity",
+    "TargetType",
+    "TestPermissionLevel",
+    "VerificationStatus",
     "Assessment",
     "ScopeRule",
     "ScopePolicy",
