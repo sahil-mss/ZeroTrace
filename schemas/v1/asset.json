@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "AssetType": {
+      "enum": [
+        "DOMAIN",
+        "SUBDOMAIN",
+        "IP_ADDRESS",
+        "WEB_APPLICATION",
+        "SERVICE",
+        "URL"
+      ],
+      "title": "AssetType",
+      "type": "string"
+    },
+    "ScopeStatus": {
+      "enum": [
+        "IN_SCOPE",
+        "OUT_OF_SCOPE",
+        "PENDING_REVIEW"
+      ],
+      "title": "ScopeStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Canonical record of a discovered or configured resource within or adjacent to scope.",
+  "properties": {
+    "asset_id": {
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "assessment_id": {
+      "minLength": 3,
+      "title": "Assessment Id",
+      "type": "string"
+    },
+    "asset_type": {
+      "$ref": "#/$defs/AssetType"
+    },
+    "value": {
+      "description": "Standardized host, IP, or URL",
+      "minLength": 1,
+      "title": "Value",
+      "type": "string"
+    },
+    "scope_status": {
+      "$ref": "#/$defs/ScopeStatus",
+      "default": "PENDING_REVIEW",
+      "description": "Scope verification determination"
+    },
+    "confidence": {
+      "default": 1.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "source_evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Evidence Ids",
+      "type": "array"
+    },
+    "is_inferred": {
+      "default": false,
+      "description": "True if asset was logically deduced; False if directly observed",
+      "title": "Is Inferred",
+      "type": "boolean"
+    },
+    "directly_observed": {
+      "default": true,
+      "description": "Flag indicating direct tool or OSINT observation",
+      "title": "Directly Observed",
+      "type": "boolean"
+    },
+    "relationships": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "description": "Associated graph relationships, e.g. {'subdomain_of': ['example.test']}",
+      "title": "Relationships",
+      "type": "object"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "first_observed": {
+      "format": "date-time",
+      "title": "First Observed",
+      "type": "string"
+    },
+    "last_observed": {
+      "format": "date-time",
+      "title": "Last Observed",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "assessment_id",
+    "asset_type",
+    "value"
+  ],
+  "title": "AegisPT Asset Contract v1",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

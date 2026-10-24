@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files & Caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment files & Local secrets
+.env
+.env.*
+!.env.example
+
+# Database files & Local runtime directories
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-wal
+aegis_data/
+
+# Test output & coverage artifacts
+.coverage
+htmlcov/
+coverage.xml
+test-results/
+
+# Collected scan artifacts, evidence blobs & raw tool outputs
+storage/
+scan_output/
+*.xml
+*.log
+
+# Generated datasets
+datasets/raw/
+datasets/processed/
+datasets/labels/
+
+# IDE & Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Packaging & Build distribution
+dist/
+build/
+*.egg-info/

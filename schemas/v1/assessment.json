@@ -1,0 +1,324 @@
+{
+  "$defs": {
+    "AssessmentStatus": {
+      "enum": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "ACTIVE",
+        "PAUSED",
+        "EXPIRED",
+        "COMPLETED",
+        "CANCELLED"
+      ],
+      "title": "AssessmentStatus",
+      "type": "string"
+    },
+    "ScopePolicy": {
+      "description": "Aggregated scope policy compatible with backend policy validators.",
+      "properties": {
+        "target_domains": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Target Domains",
+          "type": "array"
+        },
+        "target_ips": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Target Ips",
+          "type": "array"
+        },
+        "target_cidrs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Target Cidrs",
+          "type": "array"
+        },
+        "target_urls": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Target Urls",
+          "type": "array"
+        },
+        "excluded_targets": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Excluded Targets",
+          "type": "array"
+        },
+        "allowed_ports": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Allowed Ports",
+          "type": "array"
+        },
+        "max_requests_per_minute": {
+          "default": 60,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Max Requests Per Minute",
+          "type": "integer"
+        },
+        "max_concurrency": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Concurrency",
+          "type": "integer"
+        },
+        "allowed_permission_level": {
+          "$ref": "#/$defs/TestPermissionLevel",
+          "default": "PASSIVE_ONLY"
+        }
+      },
+      "title": "ScopePolicy",
+      "type": "object"
+    },
+    "ScopeRule": {
+      "additionalProperties": false,
+      "description": "Represents an explicitly approved target boundary.\nDefaults to the narrowest reasonable permission; subdomains are never auto-authorized.",
+      "properties": {
+        "rule_id": {
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "target_type": {
+          "$ref": "#/$defs/TargetType",
+          "description": "Classification of target boundary"
+        },
+        "target_value": {
+          "description": "Host, IP, CIDR, or URL",
+          "minLength": 1,
+          "title": "Target Value",
+          "type": "string"
+        },
+        "approved_ports": {
+          "description": "Explicitly approved TCP/UDP ports (e.g. [80, 443])",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Approved Ports",
+          "type": "array"
+        },
+        "permitted_path_prefixes": {
+          "description": "Explicitly permitted URL paths (e.g. ['/api', '/v1'])",
+          "items": {
+            "type": "string"
+          },
+          "title": "Permitted Path Prefixes",
+          "type": "array"
+        },
+        "include_subdomains": {
+          "default": false,
+          "description": "Must be explicitly True to authorize subdomains. Defaults to False.",
+          "title": "Include Subdomains",
+          "type": "boolean"
+        },
+        "is_excluded": {
+          "default": false,
+          "description": "If True, acts as a hard deny exclusion rule.",
+          "title": "Is Excluded",
+          "type": "boolean"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "required": [
+        "target_type",
+        "target_value"
+      ],
+      "title": "ScopeRule",
+      "type": "object"
+    },
+    "TargetType": {
+      "enum": [
+        "DOMAIN",
+        "IP_ADDRESS",
+        "CIDR",
+        "URL"
+      ],
+      "title": "TargetType",
+      "type": "string"
+    },
+    "TestPermissionLevel": {
+      "enum": [
+        "PASSIVE_ONLY",
+        "ACTIVE_NON_INTRUSIVE",
+        "CONTROLLED_VULN_SCAN",
+        "INTRUSIVE_TEST"
+      ],
+      "title": "TestPermissionLevel",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Canonical authority record for an authorized assessment.\nAn assessment is created in PENDING_APPROVAL and requires explicit review.",
+  "properties": {
+    "assessment_id": {
+      "title": "Assessment Id",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 120,
+      "minLength": 3,
+      "title": "Title",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "",
+      "title": "Description"
+    },
+    "organization_name": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Organization Name",
+      "type": "string"
+    },
+    "authorized_by": {
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Authorized By",
+      "type": "string"
+    },
+    "owner": {
+      "default": "security_team",
+      "maxLength": 120,
+      "minLength": 2,
+      "title": "Owner",
+      "type": "string"
+    },
+    "authorization_reference": {
+      "default": "AUTH-PENDING",
+      "description": "Formal tracking reference (e.g. Ticket ID, SOW number, approval token)",
+      "title": "Authorization Reference",
+      "type": "string"
+    },
+    "authorization_acknowledged": {
+      "default": false,
+      "description": "Explicit confirmation that operator verified authorization",
+      "title": "Authorization Acknowledged",
+      "type": "boolean"
+    },
+    "scope_rules": {
+      "description": "Explicit list of authorized scope boundaries",
+      "items": {
+        "$ref": "#/$defs/ScopeRule"
+      },
+      "title": "Scope Rules",
+      "type": "array"
+    },
+    "scope": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ScopePolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Backward-compatible aggregated scope policy"
+    },
+    "status": {
+      "$ref": "#/$defs/AssessmentStatus",
+      "default": "PENDING_APPROVAL",
+      "description": "Assessment status; never defaults to APPROVED on creation"
+    },
+    "max_concurrency": {
+      "default": 3,
+      "maximum": 10,
+      "minimum": 1,
+      "title": "Max Concurrency",
+      "type": "integer"
+    },
+    "max_requests_per_minute": {
+      "default": 60,
+      "maximum": 1000,
+      "minimum": 1,
+      "title": "Max Requests Per Minute",
+      "type": "integer"
+    },
+    "permitted_profiles": {
+      "items": {
+        "$ref": "#/$defs/TestPermissionLevel"
+      },
+      "title": "Permitted Profiles",
+      "type": "array"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expires At"
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Completed At"
+    }
+  },
+  "required": [
+    "title",
+    "organization_name",
+    "authorized_by"
+  ],
+  "title": "AegisPT Assessment Contract v1",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

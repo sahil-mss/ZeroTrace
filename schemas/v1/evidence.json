@@ -1,0 +1,149 @@
+{
+  "$defs": {
+    "DataClassification": {
+      "enum": [
+        "PUBLIC",
+        "INTERNAL",
+        "CONFIDENTIAL",
+        "RESTRICTED"
+      ],
+      "title": "DataClassification",
+      "type": "string"
+    },
+    "EvidenceSourceType": {
+      "enum": [
+        "DNS_LOOKUP",
+        "CERT_TRANSPARENCY",
+        "HTTP_FINGERPRINT",
+        "WEB_CRAWLER",
+        "SCANNER_NMAP",
+        "SCANNER_ZAP",
+        "SCANNER_NUCLEI",
+        "AI_REASONING",
+        "MANUAL_INPUT"
+      ],
+      "title": "EvidenceSourceType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Canonical evidence provenance record capturing an immutable observation.\nSensitive credentials and raw tokens are strictly redacted upon model validation.",
+  "properties": {
+    "evidence_id": {
+      "title": "Evidence Id",
+      "type": "string"
+    },
+    "assessment_id": {
+      "minLength": 3,
+      "title": "Assessment Id",
+      "type": "string"
+    },
+    "asset_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Asset Id"
+    },
+    "tool_name": {
+      "minLength": 1,
+      "title": "Tool Name",
+      "type": "string"
+    },
+    "source_type": {
+      "$ref": "#/$defs/EvidenceSourceType"
+    },
+    "collection_method": {
+      "default": "AUTOMATED_PROBE",
+      "minLength": 2,
+      "title": "Collection Method",
+      "type": "string"
+    },
+    "collected_at": {
+      "format": "date-time",
+      "title": "Collected At",
+      "type": "string"
+    },
+    "hash_sha256": {
+      "description": "Cryptographic SHA-256 hash of normalized evidence payload",
+      "maxLength": 64,
+      "minLength": 64,
+      "title": "Hash Sha256",
+      "type": "string"
+    },
+    "raw_payload_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional local filesystem or blob URI where raw tool output is stored",
+      "title": "Raw Payload Ref"
+    },
+    "sanitized_excerpt": {
+      "anyOf": [
+        {
+          "maxLength": 4096,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Bounded, sanitized text excerpt safe for API transmission",
+      "title": "Sanitized Excerpt"
+    },
+    "data": {
+      "additionalProperties": true,
+      "description": "Structured representation of the observation with credentials redacted",
+      "title": "Data",
+      "type": "object"
+    },
+    "data_classification": {
+      "$ref": "#/$defs/DataClassification",
+      "default": "INTERNAL",
+      "description": "Security classification of the observed evidence"
+    },
+    "tool_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": "1.0",
+      "title": "Tool Version"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "assessment_id",
+    "tool_name",
+    "source_type",
+    "hash_sha256"
+  ],
+  "title": "AegisPT Evidence Contract v1",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

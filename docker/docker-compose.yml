@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  aegis-backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DATABASE_URL=sqlite:///./aegis_data/aegispt.db
+    volumes:
+      - aegis_storage:/app/aegis_data
+    depends_on:
+      - juice-shop
+
+  # Repeatable deliberately vulnerable local lab target (OWASP Juice Shop)
+  juice-shop:
+    image: bkimminich/juice-shop:v16.0.0
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  aegis_storage:
