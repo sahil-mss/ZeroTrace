@@ -1,4 +1,3 @@
-from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from schemas.contracts import Assessment, Asset, Finding
@@ -6,12 +5,21 @@ from schemas.contracts import Assessment, Asset, Finding
 
 class TestRecommendation(BaseModel):
     """A bounded proposal for a test execution profile. Subject to policy engine authorization."""
-    recommended_profile: str = Field(..., description="Target test profile (e.g. passive_crawl, port_scan, api_audit)")
+
+    recommended_profile: str = Field(
+        ..., description="Target test profile (e.g. passive_crawl, port_scan, api_audit)"
+    )
     target_asset_id: str = Field(..., description="Asset identifier to be probed")
     target_url_or_host: str = Field(..., description="Canonical hostname or IP")
-    justification: str = Field(..., description="Reasoning based on observed asset properties or gaps")
-    requires_human_approval: bool = Field(default=False, description="Flag for intrusive or active checks")
-    preconditions: List[str] = Field(default_factory=list, description="Required setup or completed stages")
+    justification: str = Field(
+        ..., description="Reasoning based on observed asset properties or gaps"
+    )
+    requires_human_approval: bool = Field(
+        default=False, description="Flag for intrusive or active checks"
+    )
+    preconditions: list[str] = Field(
+        default_factory=list, description="Required setup or completed stages"
+    )
 
 
 class SafeTestPlanner:
@@ -23,12 +31,12 @@ class SafeTestPlanner:
     def plan_next_steps(
         self,
         assessment: Assessment,
-        assets: List[Asset],
-        existing_findings: List[Finding],
-        previously_run_profiles: Optional[List[str]] = None,
-    ) -> List[TestRecommendation]:
+        assets: list[Asset],
+        existing_findings: list[Finding],
+        previously_run_profiles: list[str] | None = None,
+    ) -> list[TestRecommendation]:
         completed_profiles = set(previously_run_profiles or [])
-        recommendations: List[TestRecommendation] = []
+        recommendations: list[TestRecommendation] = []
 
         # 1. Inspect un-scanned assets
         for asset in assets:
@@ -52,7 +60,10 @@ class SafeTestPlanner:
                             target_url_or_host=asset.hostname_or_address,
                             justification="Passive reconnaissance completed; probe input parameters for SQLi and XSS.",
                             requires_human_approval=True,  # Active scans require explicit authorization
-                            preconditions=["passive_web_crawl completed", "Scope policy permits active testing"],
+                            preconditions=[
+                                "passive_web_crawl completed",
+                                "Scope policy permits active testing",
+                            ],
                         )
                     )
 
@@ -81,7 +92,10 @@ class SafeTestPlanner:
                     target_url_or_host=assessment.target,
                     justification=f"Independent confirmation probe required for candidate finding: {f.title}.",
                     requires_human_approval=False,
-                    preconditions=["Low-impact confirmation check only", "Zero destructive payloads"],
+                    preconditions=[
+                        "Low-impact confirmation check only",
+                        "Zero destructive payloads",
+                    ],
                 )
             )
 

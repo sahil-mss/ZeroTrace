@@ -1,5 +1,4 @@
 import logging
-from typing import List, Optional, Set
 
 from modules.ai.client import DeterministicGroundedProvider, LLMClient
 from schemas.contracts import AIAnalysis, Evidence, Finding
@@ -13,17 +12,15 @@ class FindingAnalyst:
     Enforces strict citation integrity to prevent hallucinations.
     """
 
-    def __init__(self, client: Optional[LLMClient] = None):
+    def __init__(self, client: LLMClient | None = None):
         self.client = client or DeterministicGroundedProvider()
 
-    def analyze_finding(
-        self, finding: Finding, evidence_records: List[Evidence]
-    ) -> AIAnalysis:
+    def analyze_finding(self, finding: Finding, evidence_records: list[Evidence]) -> AIAnalysis:
         """
         Produce a grounded AIAnalysis for a finding.
         Validates that all cited evidence IDs exist within the supplied evidence records.
         """
-        available_ids: Set[str] = {ev.id for ev in evidence_records}
+        available_ids: set[str] = {ev.id for ev in evidence_records}
 
         raw_analysis = self.client.generate_finding_analysis(finding, evidence_records)
 
@@ -36,10 +33,10 @@ class FindingAnalyst:
         return analysis
 
     def batch_analyze(
-        self, findings: List[Finding], evidence_records: List[Evidence]
-    ) -> List[AIAnalysis]:
+        self, findings: list[Finding], evidence_records: list[Evidence]
+    ) -> list[AIAnalysis]:
         """Analyze a collection of findings against available evidence records."""
-        results: List[AIAnalysis] = []
+        results: list[AIAnalysis] = []
         for finding in findings:
             # Filter evidence records relevant to this finding
             relevant_evidence = [

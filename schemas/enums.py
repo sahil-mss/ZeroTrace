@@ -1,5 +1,16 @@
 from enum import Enum
 
+from aegis_common.enums import (
+    AuditOutcome,
+    DataClassification,
+    EvidenceSourceType,
+    JobStatus,
+    ScopeStatus,
+    Severity,
+    TargetType,
+    TestPermissionLevel,
+)
+
 
 class AssessmentStatus(str, Enum):
     PENDING = "pending"
@@ -7,6 +18,13 @@ class AssessmentStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    # also support uppercase equivalents if passed
+    DRAFT = "DRAFT"
+    PENDING_APPROVAL = "PENDING_APPROVAL"
+    APPROVED = "APPROVED"
+    ACTIVE = "ACTIVE"
+    PAUSED = "PAUSED"
+    EXPIRED = "EXPIRED"
 
 
 class AssetType(str, Enum):
@@ -16,6 +34,11 @@ class AssetType(str, Enum):
     API_ENDPOINT = "api_endpoint"
     SERVICE = "service"
     OTHER = "other"
+    # also support uppercase
+    SUBDOMAIN = "SUBDOMAIN"
+    IP_ADDRESS = "IP_ADDRESS"
+    WEB_APPLICATION = "WEB_APPLICATION"
+    URL = "URL"
 
 
 class FindingSeverity(str, Enum):
@@ -24,6 +47,7 @@ class FindingSeverity(str, Enum):
     MEDIUM = "medium"
     LOW = "low"
     INFORMATIONAL = "informational"
+    INFO = "info"
 
 
 class ConfidenceLevel(str, Enum):
@@ -37,3 +61,20 @@ class VerificationStatus(str, Enum):
     LIKELY = "likely"
     UNVERIFIED = "unverified"
     FALSE_POSITIVE = "false_positive"
+
+
+__all__ = [
+    "AssessmentStatus",
+    "AssetType",
+    "AuditOutcome",
+    "ConfidenceLevel",
+    "DataClassification",
+    "EvidenceSourceType",
+    "FindingSeverity",
+    "JobStatus",
+    "ScopeStatus",
+    "Severity",
+    "TargetType",
+    "TestPermissionLevel",
+    "VerificationStatus",
+]

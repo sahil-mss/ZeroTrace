@@ -1,0 +1,83 @@
+{
+  "$defs": {
+    "AuditOutcome": {
+      "enum": [
+        "SUCCESS",
+        "FAILURE",
+        "DENIED",
+        "CANCELLED"
+      ],
+      "title": "AuditOutcome",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Append-only immutable audit trail record for compliance, non-repudiation,\nand security policy verification.",
+  "properties": {
+    "event_id": {
+      "title": "Event Id",
+      "type": "string"
+    },
+    "assessment_id": {
+      "minLength": 3,
+      "title": "Assessment Id",
+      "type": "string"
+    },
+    "job_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Job Id"
+    },
+    "event_type": {
+      "description": "Categorical event code (e.g. 'SCOPE_CHECK_REJECTED')",
+      "minLength": 2,
+      "title": "Event Type",
+      "type": "string"
+    },
+    "timestamp": {
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "actor": {
+      "default": "system",
+      "description": "Operator username or automated component",
+      "minLength": 1,
+      "title": "Actor",
+      "type": "string"
+    },
+    "outcome": {
+      "$ref": "#/$defs/AuditOutcome",
+      "default": "SUCCESS"
+    },
+    "correlation_id": {
+      "title": "Correlation Id",
+      "type": "string"
+    },
+    "details": {
+      "additionalProperties": true,
+      "description": "Structured operational context with credentials automatically redacted",
+      "title": "Details",
+      "type": "object"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "assessment_id",
+    "event_type"
+  ],
+  "title": "AegisPT AuditEvent Contract v1",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

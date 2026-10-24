@@ -1,13 +1,13 @@
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Set
+
 import httpx
 from pydantic import ValidationError
 
 from modules.ai.config import AIConfig
 from schemas.contracts import AIAnalysis, Evidence, Finding
-from schemas.enums import ConfidenceLevel, FindingSeverity, VerificationStatus
+from schemas.enums import ConfidenceLevel, VerificationStatus
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class BaseModelAdapter(ABC):
     """Common input/output interface for AI model adapters."""
 
     @abstractmethod
-    def analyze(self, finding: Finding, evidence_records: List[Evidence]) -> AIAnalysis:
+    def analyze(self, finding: Finding, evidence_records: list[Evidence]) -> AIAnalysis:
         """Produce validated structured analysis for a finding and its supplied evidence."""
         pass
 
@@ -27,24 +27,22 @@ class DeterministicFallbackAdapter(BaseModelAdapter):
     Always available, fast, safe, and explicitly marked as non-LLM analysis.
     """
 
-    def analyze(self, finding: Finding, evidence_records: List[Evidence]) -> AIAnalysis:
+    def analyze(self, finding: Finding, evidence_records: list[Evidence]) -> AIAnalysis:
         evidence_map = {ev.id: ev for ev in evidence_records}
-        valid_citations = [
-            ev_id for ev_id in finding.evidence_references if ev_id in evidence_map
-        ]
+        valid_citations = [ev_id for ev_id in finding.evidence_references if ev_id in evidence_map]
         has_evidence = len(valid_citations) > 0
 
         # Extract factual statements directly from evidence
-        evidence_facts: List[str] = []
+        evidence_facts: list[str] = []
         for ev_id in valid_citations:
             ev = evidence_map[ev_id]
             fact_desc = f"Evidence [{ev.id}] via {ev.source}: {ev.description}"
             evidence_facts.append(fact_desc)
 
         # Build technical interpretations and grounded remediation
-        interpretation: List[str] = []
-        limitations: List[str] = []
-        remediation_steps: List[str] = []
+        interpretation: list[str] = []
+        limitations: list[str] = []
+        remediation_steps: list[str] = []
 
         title_lower = finding.title.lower()
         if "sql" in title_lower:
@@ -52,9 +50,7 @@ class DeterministicFallbackAdapter(BaseModelAdapter):
                 f"SQL Injection vulnerability identified in {finding.title}. "
                 "Unsanitized input allows arbitrary query manipulation."
             )
-            interpretation.append(
-                "Input parameter is concatenated directly into SQL query syntax."
-            )
+            interpretation.append("Input parameter is concatenated directly into SQL query syntax.")
             interpretation.append(
                 "Successful exploitation allows unauthorized read, modification, or bypass of authentication controls."
             )
@@ -88,8 +84,12 @@ class DeterministicFallbackAdapter(BaseModelAdapter):
                 "Scanner evaluated file path traversal sequences against resource routing."
             )
             if finding.verification_status == VerificationStatus.FALSE_POSITIVE:
-                interpretation.append("Server returned 403 Forbidden, proving path traversal was mitigated.")
-                remediation_steps = ["No immediate code patch required. Update scanner suppression rule."]
+                interpretation.append(
+                    "Server returned 403 Forbidden, proving path traversal was mitigated."
+                )
+                remediation_steps = [
+                    "No immediate code patch required. Update scanner suppression rule."
+                ]
             else:
                 remediation_steps = [
                     "Sanitize file paths against a trusted directory base.",
@@ -101,16 +101,22 @@ class DeterministicFallbackAdapter(BaseModelAdapter):
             summary = f"Security observation: {finding.title}."
             interpretation.append(finding.description)
             if finding.remediation:
-                remediation_steps = [r.strip() for r in finding.remediation.splitlines() if r.strip()]
+                remediation_steps = [
+                    r.strip() for r in finding.remediation.splitlines() if r.strip()
+                ]
             else:
-                remediation_steps = ["Apply standard vendor security baselines and secure configuration standards."]
+                remediation_steps = [
+                    "Apply standard vendor security baselines and secure configuration standards."
+                ]
             limitations.append("Subject to application environment topology.")
 
         # Evidence-grounded confidence & verification safety rules
         if not has_evidence:
             confidence = ConfidenceLevel.LOW
             conf_just = "Confidence is LOW because no empirical evidence or raw scanner payloads were attached."
-            limitations.append("CRITICAL EVIDENCE GAP: No supporting raw evidence records were provided; verification is required.")
+            limitations.append(
+                "CRITICAL EVIDENCE GAP: No supporting raw evidence records were provided; verification is required."
+            )
             verification_status = VerificationStatus.UNVERIFIED
         else:
             confidence = finding.confidence
@@ -152,11 +158,11 @@ class RemoteLLMAdapter(BaseModelAdapter):
     and automatic graceful fallback on timeouts or malformed JSON.
     """
 
-    def __init__(self, config: Optional[AIConfig] = None, fallback: Optional[BaseModelAdapter] = None):
+    def __init__(self, config: AIConfig | None = None, fallback: BaseModelAdapter | None = None):
         self.config = config or AIConfig()
         self.fallback = fallback or DeterministicFallbackAdapter()
 
-    def analyze(self, finding: Finding, evidence_records: List[Evidence]) -> AIAnalysis:
+    def analyze(self, finding: Finding, evidence_records: list[Evidence]) -> AIAnalysis:
         # Check consent before transmitting assessment data externally
         if not self.config.allow_external_calls and not self.config.is_local_endpoint():
             logger.warning(
@@ -183,7 +189,12 @@ class RemoteLLMAdapter(BaseModelAdapter):
         )
 
         evidence_payload = [
-            {"id": ev.id, "source": ev.source, "description": ev.description, "raw_snippet": ev.raw_data}
+            {
+                "id": ev.id,
+                "source": ev.source,
+                "description": ev.description,
+                "raw_snippet": ev.raw_data,
+            }
             for ev in evidence_records
         ]
 
@@ -255,14 +266,18 @@ class RemoteLLMAdapter(BaseModelAdapter):
                 finding.verification_status != VerificationStatus.CONFIRMED
                 and parsed_dict.get("verification_status") == "confirmed"
             ):
-                logger.warning("Model attempted to upgrade unconfirmed finding to confirmed; clamping.")
-                parsed_dict["verification_status"] = "likely" if parsed_dict.get("confidence") == "high" else "unverified"
+                logger.warning(
+                    "Model attempted to upgrade unconfirmed finding to confirmed; clamping."
+                )
+                parsed_dict["verification_status"] = (
+                    "likely" if parsed_dict.get("confidence") == "high" else "unverified"
+                )
                 parsed_dict.setdefault("limitations", []).append(
                     "Model attempted to mark finding as confirmed without empirical scanner proof; clamped to unverified/likely."
                 )
 
             # Strict Guardrail 2: If evidence is absent, clamp confidence
-            available_ids: Set[str] = {ev.id for ev in evidence_records}
+            available_ids: set[str] = {ev.id for ev in evidence_records}
             if not available_ids:
                 parsed_dict["confidence"] = "low"
                 parsed_dict.setdefault("limitations", []).append(

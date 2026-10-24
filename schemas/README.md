@@ -59,7 +59,7 @@ evidence = Evidence(
     source="owasp_zap",
     description="Reflected XSS payload observed in query parameter 'q'",
     reference_or_artifact_location="/artifacts/zap_run_12.json",
-    raw_data="HTTP/1.1 200 OK\n...<script>alert(1)</script>..."
+    raw_data="HTTP/1.1 200 OK\n...<script>alert(1)</script>...",
 )
 
 # 2. Finding created with evidence reference
@@ -74,7 +74,7 @@ finding = Finding(
     verification_status=VerificationStatus.CONFIRMED,
     evidence_references=["ev_zap_001"],
     source_tool="owasp_zap",
-    cwe="CWE-79"
+    cwe="CWE-79",
 )
 
 # 3. AI Analysis grounded in evidence
@@ -87,7 +87,7 @@ analysis = AIAnalysis(
     confidence_justification="Empirically confirmed through active reflection proof.",
     recommended_remediation="Apply context-aware contextual HTML entity encoding and implement Content-Security-Policy (CSP).",
     limitations_and_missing_evidence=["WAF bypass potential was not tested."],
-    cited_evidence_ids=["ev_zap_001"]
+    cited_evidence_ids=["ev_zap_001"],
 )
 
 # Enforce anti-hallucination check

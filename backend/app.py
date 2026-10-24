@@ -1,6 +1,6 @@
 import os
-from typing import List, Optional
-from fastapi import Depends, FastAPI, HTTPException, Header, status
+
+from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -30,8 +30,8 @@ def get_api_auth_token() -> str:
 
 
 def verify_authentication(
-    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
-    authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_api_key: str | None = Header(None, alias="X-API-Key"),
+    authorization: str | None = Header(None, alias="Authorization"),
 ) -> bool:
     """
     Validate incoming request credentials against configured token.
@@ -58,7 +58,7 @@ def verify_authentication(
 
 class AnalyzeFindingRequest(BaseModel):
     finding: Finding
-    evidence: List[Evidence] = Field(default_factory=list)
+    evidence: list[Evidence] = Field(default_factory=list)
 
 
 @app.get("/api/health")
@@ -92,10 +92,10 @@ def analyze_finding_endpoint(
 
 
 class RawIngestionPayload(BaseModel):
-    assessment: Optional[dict] = None
-    assets: List[dict] = Field(default_factory=list)
-    findings: List[dict] = Field(default_factory=list)
-    evidence: List[dict] = Field(default_factory=list)
+    assessment: dict | None = None
+    assets: list[dict] = Field(default_factory=list)
+    findings: list[dict] = Field(default_factory=list)
+    evidence: list[dict] = Field(default_factory=list)
     fallback_assessment_id: str = "assess_unknown"
 
 
@@ -111,25 +111,19 @@ def normalize_upstream_payload(payload: RawIngestionPayload):
     from backend.adapter import UpstreamNormalizer
 
     normalized_assessment = (
-        UpstreamNormalizer.normalize_assessment(payload.assessment)
-        if payload.assessment
-        else None
+        UpstreamNormalizer.normalize_assessment(payload.assessment) if payload.assessment else None
     )
 
     aid = normalized_assessment.id if normalized_assessment else payload.fallback_assessment_id
 
-    normalized_assets = [
-        UpstreamNormalizer.normalize_asset(a, aid) for a in payload.assets
-    ]
-    normalized_evidence = [
-        UpstreamNormalizer.normalize_evidence(e, aid) for e in payload.evidence
-    ]
-    normalized_findings = [
-        UpstreamNormalizer.normalize_finding(f, aid) for f in payload.findings
-    ]
+    normalized_assets = [UpstreamNormalizer.normalize_asset(a, aid) for a in payload.assets]
+    normalized_evidence = [UpstreamNormalizer.normalize_evidence(e, aid) for e in payload.evidence]
+    normalized_findings = [UpstreamNormalizer.normalize_finding(f, aid) for f in payload.findings]
 
     return {
-        "assessment": normalized_assessment.model_dump(mode="json") if normalized_assessment else None,
+        "assessment": normalized_assessment.model_dump(mode="json")
+        if normalized_assessment
+        else None,
         "assets": [a.model_dump(mode="json") for a in normalized_assets],
         "findings": [f.model_dump(mode="json") for f in normalized_findings],
         "evidence": [e.model_dump(mode="json") for e in normalized_evidence],
@@ -146,6 +140,7 @@ def inspect_module_statuses():
     without faking completed scan states.
     """
     from backend.adapter import UpstreamAssessmentClient
+
     client = UpstreamAssessmentClient()
     health = client.check_health()
     return {

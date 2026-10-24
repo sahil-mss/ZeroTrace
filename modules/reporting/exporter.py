@@ -1,6 +1,4 @@
-import json
 from pathlib import Path
-from typing import Union
 
 from modules.reporting.generator import AssessmentReport
 
@@ -92,7 +90,7 @@ class ReportExporter:
         return html
 
     @classmethod
-    def save_to_file(cls, report: AssessmentReport, output_path: Union[str, Path]) -> Path:
+    def save_to_file(cls, report: AssessmentReport, output_path: str | Path) -> Path:
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
 

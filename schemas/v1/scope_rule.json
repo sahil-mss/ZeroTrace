@@ -1,0 +1,80 @@
+{
+  "$defs": {
+    "TargetType": {
+      "enum": [
+        "DOMAIN",
+        "IP_ADDRESS",
+        "CIDR",
+        "URL"
+      ],
+      "title": "TargetType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Represents an explicitly approved target boundary.\nDefaults to the narrowest reasonable permission; subdomains are never auto-authorized.",
+  "properties": {
+    "rule_id": {
+      "title": "Rule Id",
+      "type": "string"
+    },
+    "target_type": {
+      "$ref": "#/$defs/TargetType",
+      "description": "Classification of target boundary"
+    },
+    "target_value": {
+      "description": "Host, IP, CIDR, or URL",
+      "minLength": 1,
+      "title": "Target Value",
+      "type": "string"
+    },
+    "approved_ports": {
+      "description": "Explicitly approved TCP/UDP ports (e.g. [80, 443])",
+      "items": {
+        "type": "integer"
+      },
+      "title": "Approved Ports",
+      "type": "array"
+    },
+    "permitted_path_prefixes": {
+      "description": "Explicitly permitted URL paths (e.g. ['/api', '/v1'])",
+      "items": {
+        "type": "string"
+      },
+      "title": "Permitted Path Prefixes",
+      "type": "array"
+    },
+    "include_subdomains": {
+      "default": false,
+      "description": "Must be explicitly True to authorize subdomains. Defaults to False.",
+      "title": "Include Subdomains",
+      "type": "boolean"
+    },
+    "is_excluded": {
+      "default": false,
+      "description": "If True, acts as a hard deny exclusion rule.",
+      "title": "Is Excluded",
+      "type": "boolean"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 255,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    }
+  },
+  "required": [
+    "target_type",
+    "target_value"
+  ],
+  "title": "AegisPT ScopeRule Contract v1",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

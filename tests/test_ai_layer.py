@@ -1,6 +1,7 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
+
 import httpx
 import pytest
 from fastapi.testclient import TestClient
@@ -8,20 +9,19 @@ from fastapi.testclient import TestClient
 from backend.app import app
 from modules.ai.adapter import DeterministicFallbackAdapter, RemoteLLMAdapter
 from modules.ai.config import AIConfig
-from modules.ai.service import AIAnalysisService
 from schemas.contracts import Evidence, Finding
 from schemas.enums import ConfidenceLevel, FindingSeverity, VerificationStatus
 
 
 @pytest.fixture
 def sample_finding_and_evidence():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     ev = Evidence(
         id="ev_zap_sqli_01",
         source="owasp_zap",
         description="Union SELECT response reflection in product search query parameter q",
         observed_at=now,
-        raw_data="HTTP 200 OK\n[{\"id\": 1, \"admin\": true}]",
+        raw_data='HTTP 200 OK\n[{"id": 1, "admin": true}]',
     )
     finding = Finding(
         id="fnd_test_sqli",
@@ -62,7 +62,6 @@ def test_valid_output_deterministic(sample_finding_and_evidence):
 
 
 def test_missing_evidence_behavior():
-    now = datetime.now(timezone.utc)
     finding = Finding(
         id="fnd_unbacked_timing",
         assessment_id="asm_test_01",
@@ -87,7 +86,6 @@ def test_missing_evidence_behavior():
 
 def test_anti_upgrade_rule(sample_finding_and_evidence):
     # Candidate finding is unverified
-    now = datetime.now(timezone.utc)
     finding = Finding(
         id="fnd_unconfirmed_candidate",
         assessment_id="asm_test_01",
@@ -124,9 +122,7 @@ def test_anti_upgrade_rule(sample_finding_and_evidence):
     }
 
     mock_resp = MagicMock()
-    mock_resp.json.return_value = {
-        "choices": [{"message": {"content": json.dumps(mock_payload)}}]
-    }
+    mock_resp.json.return_value = {"choices": [{"message": {"content": json.dumps(mock_payload)}}]}
     mock_resp.raise_for_status = MagicMock()
 
     with patch("httpx.Client.post", return_value=mock_resp):
@@ -167,7 +163,9 @@ def test_malformed_json_fallback(sample_finding_and_evidence):
 
     mock_resp = MagicMock()
     mock_resp.json.return_value = {
-        "choices": [{"message": {"content": "Here is your analysis: { broken json, invalid structure..."}}]
+        "choices": [
+            {"message": {"content": "Here is your analysis: { broken json, invalid structure..."}}
+        ]
     }
     mock_resp.raise_for_status = MagicMock()
 

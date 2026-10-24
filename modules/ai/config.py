@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -18,7 +18,7 @@ class AIConfig(BaseModel):
         default_factory=lambda: os.getenv("AI_API_BASE", "http://localhost:11434/v1"),
         description="Base URL for OpenAI-compatible or local model endpoints",
     )
-    api_key: Optional[str] = Field(
+    api_key: str | None = Field(
         default_factory=lambda: os.getenv("AI_API_KEY", ""),
         description="API key for authentication (never committed to repository)",
     )
@@ -27,8 +27,9 @@ class AIConfig(BaseModel):
         description="HTTP request timeout in seconds",
     )
     allow_external_calls: bool = Field(
-        default_factory=lambda: os.getenv("AI_ALLOW_EXTERNAL_CALLS", "false").lower()
-        in ("true", "1", "yes"),
+        default_factory=lambda: (
+            os.getenv("AI_ALLOW_EXTERNAL_CALLS", "false").lower() in ("true", "1", "yes")
+        ),
         description="Explicit consent flag to permit sending assessment data to external endpoints",
     )
 
