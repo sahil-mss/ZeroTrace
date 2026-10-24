@@ -4,12 +4,10 @@ TASK 3: Computes stable finding fingerprints and aggregates duplicate vulnerabil
 observations without merging findings that refer to materially different assets.
 """
 
-from datetime import datetime
 import hashlib
 from typing import Sequence
 
 from aegispt.security_engine.schemas.finding import (
-    EvidenceReference,
     NormalizedFinding,
 )
 

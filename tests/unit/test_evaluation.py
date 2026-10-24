@@ -1,10 +1,8 @@
 """Unit tests for MetricsCalculator and BenchmarkHarness."""
 
-import pytest
 
 from aegispt.security_engine.evaluation import (
     BenchmarkHarness,
-    BenchmarkScenario,
     JUICE_SHOP_BENCHMARK_SCENARIOS,
     MetricsCalculator,
     ScenarioResult,

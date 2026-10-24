@@ -1,6 +1,6 @@
 """Unit tests for the Finding Verification Engine and Verification Plugins."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from unittest.mock import MagicMock
 import pytest
 import requests
@@ -15,11 +15,7 @@ from aegispt.security_engine.schemas import (
 )
 from aegispt.security_engine.verification import (
     BaseVerifier,
-    HeaderSecurityVerifier,
-    LabGroundTruthVerifier,
-    PassiveReflectionVerifier,
     VerificationEngine,
-    VerificationRecord,
 )
 
 

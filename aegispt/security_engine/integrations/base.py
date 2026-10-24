@@ -8,10 +8,8 @@ compatibility for Person 1's orchestrator.
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-import time
 
 from aegispt.security_engine.core.exceptions import (
-    ApprovalRequiredError,
     ProfileValidationError,
     TargetValidationError,
 )

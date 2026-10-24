@@ -32,7 +32,11 @@ export const FindingsPage: React.FC = () => {
     selectedFindingId,
     setSelectedFindingId,
     globalSearch,
+    isBackendHealthy,
+    isLoading,
   } = useApp();
+
+  const isDemo = isBackendHealthy === false;
 
   // Filter States (preserved across selection / detail drawer)
   const [severityFilter, setSeverityFilter] = useState<string>('all');
@@ -149,7 +153,10 @@ export const FindingsPage: React.FC = () => {
       {/* Page Header */}
       <div className="row-between responsive-stack">
         <div>
-          <h1 className="h1">Security Findings Explorer</h1>
+          <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
+            <h1 className="h1" style={{ margin: 0 }}>Security Findings Explorer</h1>
+            {isDemo && <span className="demo-data-tag">DEMO DATA</span>}
+          </div>
           <p className="muted text-sm" style={{ marginTop: '0.2rem' }}>
             Empirical findings triage with explicit distinction between impact severity, scanner confidence, and verification state.
           </p>
@@ -342,7 +349,23 @@ export const FindingsPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {paginatedFindings.length === 0 ? (
+            {isLoading ? (
+              [1, 2, 3, 4, 5].map((idx) => (
+                <tr key={`skeleton-${idx}`}>
+                  <td><span className="skeleton" style={{ width: '80px', height: '1.25rem' }} /></td>
+                  <td>
+                    <span className="skeleton" style={{ width: '60%', height: '1rem', marginBottom: '6px' }} />
+                    <span className="skeleton" style={{ width: '90%', height: '0.75rem' }} />
+                  </td>
+                  <td><span className="skeleton" style={{ width: '100px', height: '1rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '65px', height: '1.25rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '75px', height: '1.25rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '50px', height: '1rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '70px', height: '1rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '60px', height: '1.5rem' }} /></td>
+                </tr>
+              ))
+            ) : paginatedFindings.length === 0 ? (
               <tr>
                 <td colSpan={8} style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>

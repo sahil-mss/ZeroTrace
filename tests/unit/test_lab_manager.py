@@ -1,7 +1,7 @@
 """Unit tests for LabManager and LabConfig."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import pytest
 from pydantic import ValidationError
 import requests
@@ -9,7 +9,6 @@ import requests
 from aegispt.security_engine.evaluation.lab_manager import (
     LabConfig,
     LabManager,
-    LabStatus,
 )
 
 

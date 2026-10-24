@@ -18,9 +18,7 @@ from aegispt.security_engine.core.ai_planner_interface import (
 from aegispt.security_engine.core.exceptions import (
     AIRecommendationValidationError,
     JobLifecycleError,
-    ScopeViolationError,
 )
-from aegispt.security_engine.core.scope import LocalScopeValidator
 from aegispt.security_engine.schemas.enums import (
     AssetType,
     JobStatus,
@@ -30,7 +28,7 @@ from aegispt.security_engine.schemas.enums import (
 from aegispt.security_engine.schemas.job import ScanJobRequest
 from aegispt.security_engine.schemas.profile import ResourceBudget
 from aegispt.security_engine.schemas.target import ScanTarget
-from aegispt.security_engine.service import ScannerService, create_default_scanner_registry
+from aegispt.security_engine.service import ScannerService
 
 
 class TestScannerServiceExecution(unittest.TestCase):

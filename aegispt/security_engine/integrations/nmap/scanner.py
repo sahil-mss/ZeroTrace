@@ -10,7 +10,6 @@ import hashlib
 from pathlib import Path
 import shutil
 import subprocess
-from typing import Any
 
 from aegispt.security_engine.core.exceptions import (
     ProfileValidationError,

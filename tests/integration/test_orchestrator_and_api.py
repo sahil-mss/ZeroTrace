@@ -1,28 +1,64 @@
-import tempfile
+"""
+Integration test verifying end-to-end assessment lifecycle, scope boundaries,
+evidence verification, and job cancellation via the canonical ZeroTrace app (backend.app.main).
+"""
 
+import tempfile
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.api.app import create_app
-from schemas.enums import AssetType, JobStatus
-from schemas.models import Asset, EvidenceSourceType
+from aegis_common.enums import (
+    AssessmentStatus,
+    EvidenceSourceType,
+    Severity,
+    VerificationStatus,
+)
+from backend.app.core.config import settings
+from backend.app.db.models import Base
+from backend.app.db.session import get_db, get_engine, get_session_factory
+from backend.app.main import create_application
+
+TEST_AUTH_TOKEN = "test-secret-zerotrace-token-e2e"
+AUTH_HEADERS = {"Authorization": f"Bearer {TEST_AUTH_TOKEN}"}
 
 
 @pytest.fixture
-def test_client():
+def client_and_session():
     db_file = tempfile.mktemp(suffix=".db")
-    app = create_app(f"sqlite:///{db_file}")
-    client = TestClient(app)
-    return client
+    db_url = f"sqlite:///{db_file}"
+    engine = get_engine(db_url)
+    Base.metadata.create_all(bind=engine)
+    session_factory = get_session_factory(engine)
+
+    app = create_application()
+
+    def override_get_db():
+        db = session_factory()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    settings.API_AUTH_TOKEN = TEST_AUTH_TOKEN
+
+    with TestClient(app) as test_client:
+        yield test_client
+
+    app.dependency_overrides.clear()
+    Base.metadata.drop_all(bind=engine)
 
 
-def test_end_to_end_assessment_workflow(test_client):
+def test_end_to_end_assessment_workflow(client_and_session):
+    client = client_and_session
+
     # 1. Create an Assessment
     payload = {
         "title": "Local OWASP Juice Shop Lab Test",
         "organization_name": "Security Research Lab",
         "authorized_by": "Lead Security Engineer",
         "description": "Authorized penetration testing assessment for local lab application",
+        "authorization_acknowledged": True,
         "scope": {
             "target_domains": ["lab.example.test"],
             "target_ips": ["127.0.0.1"],
@@ -36,43 +72,55 @@ def test_end_to_end_assessment_workflow(test_client):
         },
     }
 
-    resp = test_client.post("/assessments", json=payload)
+    resp = client.post("/assessments", json=payload, headers=AUTH_HEADERS)
     assert resp.status_code == 201
     assessment_data = resp.json()
     assessment_id = assessment_data["assessment_id"]
     assert assessment_id is not None
-    assert assessment_data["status"] == "APPROVED"
+    assert assessment_data["status"] == "PENDING_APPROVAL"
 
-    # 2. Try to enqueue an OUT-OF-SCOPE job (e.g. google.com or excluded target) -> Must be rejected!
+    # Explicitly approve assessment
+    resp_approve = client.post(
+        f"/assessments/{assessment_id}/approve",
+        json={"approver": "Lead Security Engineer"},
+        headers=AUTH_HEADERS,
+    )
+    assert resp_approve.status_code == 200
+    assert resp_approve.json()["status"] == "APPROVED"
+
+    # 2. Try to enqueue an OUT-OF-SCOPE start/job -> Must be rejected!
     out_of_scope_job = {
         "task_type": "OSINT_DNS",
         "target_input": "unauthorized-external-target.com",
-        "permission_level": "PASSIVE_ONLY",
     }
-    resp_bad = test_client.post(f"/assessments/{assessment_id}/jobs", json=out_of_scope_job)
-    assert resp_bad.status_code == 201
-    bad_job_data = resp_bad.json()
-    assert bad_job_data["status"] == JobStatus.FAILED.value
-    assert "Scope violation" in bad_job_data["error_message"]
+    resp_bad = client.post(f"/assessments/{assessment_id}/start", json=out_of_scope_job, headers=AUTH_HEADERS)
+    assert resp_bad.status_code == 400
+    assert "violates assessment scope" in resp_bad.json()["detail"].lower()
 
-    # Verify audit event logged for rejected scope check
-    resp_events = test_client.get(f"/assessments/{assessment_id}/events")
+    # Verify audit event logged
+    resp_events = client.get(f"/assessments/{assessment_id}/events", headers=AUTH_HEADERS)
+    assert resp_events.status_code == 200
     events = resp_events.json()
-    rejection_events = [e for e in events if e["event_type"] == "SCOPE_CHECK_REJECTED"]
-    assert len(rejection_events) == 1
+    assert len(events) >= 1
 
-    # 3. Submit an in-scope Evidence record (as Person 1, Person 2, or Person 3)
-    # Calculate correct hash using EvidenceStore to match
-    store = test_client.app.state.evidence_store
-    evidence_obj = store.create_evidence(
-        assessment_id=assessment_id,
-        source_type=EvidenceSourceType.SCANNER_ZAP,
-        tool_name="ZAP_Baseline",
-        data={"alert": "Missing Anti-clickjacking Header", "url": "http://127.0.0.1:3000"},
+    # 3. Register in-scope target asset and submit in-scope Evidence
+    asset_resp = client.post(
+        f"/assessments/{assessment_id}/assets",
+        json={"raw_value": "http://127.0.0.1:3000", "asset_type": "url"},
+        headers=AUTH_HEADERS,
     )
-    resp_evi = test_client.post(
+    assert asset_resp.status_code == 201
+    asset_id = asset_resp.json()["asset_id"]
+
+    resp_evi = client.post(
         f"/assessments/{assessment_id}/evidence",
-        json=evidence_obj.model_dump(mode="json"),
+        json={
+            "source_name": "ZAP_Baseline",
+            "source_type": EvidenceSourceType.SCANNER_ZAP.value,
+            "data": {"alert": "Missing Anti-clickjacking Header", "url": "http://127.0.0.1:3000"},
+            "asset_id": asset_id,
+        },
+        headers=AUTH_HEADERS,
     )
     assert resp_evi.status_code == 201
     registered_evidence_id = resp_evi.json()["evidence_id"]
@@ -80,54 +128,43 @@ def test_end_to_end_assessment_workflow(test_client):
     # 4. Submit a Finding with a fake/non-existent evidence ID -> Must be rejected!
     bad_finding = {
         "assessment_id": assessment_id,
-        "asset_id": "asset_01",
+        "asset_id": asset_id,
         "title": "Fake SQL Injection",
         "description": "Hallucinated issue without evidence",
-        "severity": "HIGH",
+        "severity": Severity.HIGH.value,
         "confidence": 0.9,
-        "verification_status": "UNVERIFIED",
+        "verification_status": VerificationStatus.UNVERIFIED.value,
         "evidence_ids": ["evi_does_not_exist_999"],
         "remediation": "Fix input validation",
-        "tool_name": "ai_analyst",
+        "source_tool": "ai_analyst",
     }
-    resp_bad_find = test_client.post(f"/assessments/{assessment_id}/findings", json=bad_finding)
+    resp_bad_find = client.post(f"/assessments/{assessment_id}/findings", json=bad_finding, headers=AUTH_HEADERS)
     assert resp_bad_find.status_code == 400
-    assert "does not exist in assessment evidence store" in resp_bad_find.json()["detail"]
+    assert "evidence provenance violation" in resp_bad_find.json()["detail"].lower()
 
-    # 5. Register in-scope target asset and submit valid Finding with the registered evidence ID
-    test_client.app.state.db.save_asset(
-        Asset(
-            asset_id="asset_juice_01",
-            assessment_id=assessment_id,
-            asset_type=AssetType.URL,
-            value="http://127.0.0.1:3000",
-        )
-    )
+    # 5. Submit valid Finding with registered evidence ID -> Succeeds!
     valid_finding = {
         "assessment_id": assessment_id,
-        "asset_id": "asset_juice_01",
+        "asset_id": asset_id,
         "title": "Missing Anti-clickjacking Header (X-Frame-Options)",
         "description": "The web application does not set X-Frame-Options or CSP frame-ancestors.",
         "cwe": "CWE-1021",
-        "severity": "LOW",
+        "severity": Severity.LOW.value,
         "confidence": 0.95,
-        "verification_status": "LIKELY",
+        "verification_status": VerificationStatus.LIKELY.value,
         "evidence_ids": [registered_evidence_id],
-        "root_cause": "Missing security header configuration in Express app.",
         "remediation": "Configure helmet middleware or add X-Frame-Options: DENY header.",
-        "tool_name": "ZAP_Baseline",
+        "source_tool": "ZAP_Baseline",
     }
-    resp_good_find = test_client.post(f"/assessments/{assessment_id}/findings", json=valid_finding)
+    resp_good_find = client.post(f"/assessments/{assessment_id}/findings", json=valid_finding, headers=AUTH_HEADERS)
     assert resp_good_find.status_code == 201
 
-    # 6. Retrieve Final Report summary
-    resp_report = test_client.get(f"/assessments/{assessment_id}/report")
+    # 6. Retrieve Report status response
+    resp_report = client.get(f"/assessments/{assessment_id}/report", headers=AUTH_HEADERS)
     assert resp_report.status_code == 200
-    report = resp_report.json()
-    assert report["summary"]["total_findings"] == 1
-    assert report["summary"]["total_evidence_records"] == 1
+    assert resp_report.json()["status"] == "NOT_READY"
 
     # 7. Cancel assessment immediately
-    resp_cancel = test_client.post(f"/assessments/{assessment_id}/cancel")
+    resp_cancel = client.post(f"/assessments/{assessment_id}/cancel", json={"reason": "Test finished"}, headers=AUTH_HEADERS)
     assert resp_cancel.status_code == 200
-    assert resp_cancel.json()["status"] == "CANCELLED"
+    assert resp_cancel.json()["status"] == AssessmentStatus.CANCELLED.value

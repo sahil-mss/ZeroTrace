@@ -1,6 +1,5 @@
-import os
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from modules.ai.config import AIConfig
@@ -10,36 +9,7 @@ from schemas.contracts import AIAnalysis, Evidence, Finding
 router = APIRouter(tags=["AI Analysis & Upstream"])
 
 
-def get_api_auth_token() -> str:
-    """Read API token from environment dynamically."""
-    return os.getenv("API_AUTH_TOKEN", "").strip()
-
-
-def verify_authentication(
-    x_api_key: str | None = Header(None, alias="X-API-Key"),
-    authorization: str | None = Header(None, alias="Authorization"),
-) -> bool:
-    """
-    Validate incoming request credentials against configured token.
-    If no token is configured in lab environment, permits local requests.
-    """
-    configured_token = get_api_auth_token()
-    if not configured_token:
-        return True  # Open lab sandbox mode
-
-    provided_token = x_api_key
-    if not provided_token and authorization:
-        if authorization.lower().startswith("bearer "):
-            provided_token = authorization[7:].strip()
-        else:
-            provided_token = authorization.strip()
-
-    if provided_token != configured_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing API authentication token.",
-        )
-    return True
+from backend.app.api.auth import verify_api_token
 
 
 class AnalyzeFindingRequest(BaseModel):
@@ -66,7 +36,7 @@ def health_check():
 )
 def analyze_finding_endpoint(
     request: AnalyzeFindingRequest,
-    authenticated: bool = Depends(verify_authentication),
+    _token: str = Depends(verify_api_token),
 ):
     """
     Produce structured, evidence-grounded analysis for a supplied finding.

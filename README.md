@@ -285,8 +285,7 @@ The application runs out of the box using secure default settings (deterministic
 | `AI_API_BASE` | `http://localhost:11434/v1` | Base URL for LLM provider API requests. |
 | `AI_API_KEY` | `""` | API key for authenticated model providers (never committed). |
 | `AI_TIMEOUT_SECONDS` | `10.0` | Timeout in seconds for LLM network requests. |
-| `AI_ALLOW_EXTERNAL_CALLS` | `false` | Explicit consent flag (`true`/`false`). Must be `true` to allow traffic to non-local endpoints. |
-| `API_AUTH_TOKEN` | `""` | Optional bearer/header token for backend API authentication. Empty allows local lab requests. |
+| `API_BEARER_TOKEN` / `API_AUTH_TOKEN` | `""` | Shared bearer token for backend API authentication. When unset, protected endpoints fail closed with HTTP 401. |
 | `OSINT_NETWORK_ENABLED` | `false` | Master switch for network-backed OSINT adapters. Disabled by default for offline safety. |
 | `OSINT_DNS_ENABLED` | `false` | Enable live DNS metadata queries (`A`, `AAAA`, `CNAME`, `MX`, `NS`). Disabled by default. |
 | `OSINT_CT_ENABLED` | `false` | Enable live Certificate Transparency lookups (crt.sh). Disabled by default. |
@@ -542,10 +541,13 @@ ZeroTrace includes comprehensive automated test suites for both backend and fron
 
 #### 1. Backend Pytest Suite (Unit & Integration)
 ```powershell
-# From repository root
+# Windows
 .venv\Scripts\python.exe -m pytest tests/ -v
+
+# Linux / macOS
+pytest tests/ -v
 ```
-*Expected Result:* **270 passed** in ~25s across 30 test suites.
+*Expected Result:* **270 passed** in ~8s across 30 test suites.
 - `tests/unit/test_api_endpoints.py`: Assessment management, approvals, assets, evidence.
 - `tests/unit/test_session10_adapters.py`: DNS metadata and CT adapter tests, rate limits, caching, and classification.
 - `tests/unit/test_osint_framework.py`: Collection, deduplication, timeouts, cancellation.
@@ -562,10 +564,10 @@ ZeroTrace includes comprehensive automated test suites for both backend and fron
 #### 2. Backend Code Quality & Linting
 ```powershell
 # Run Ruff lint check
-.venv\Scripts\ruff.exe check .
+ruff check .
 
 # Check code formatting
-.venv\Scripts\ruff.exe format --check .
+ruff format --check .
 ```
 *Expected Result:* **0 errors**, all files formatted cleanly.
 
@@ -573,7 +575,7 @@ ZeroTrace includes comprehensive automated test suites for both backend and fron
 ```powershell
 # Run migrations against a temporary test database
 $env:DATABASE_URL="sqlite:///test_temp.db"
-.venv\Scripts\alembic.exe upgrade head
+alembic upgrade head
 Remove-Item test_temp.db
 ```
 
@@ -583,7 +585,7 @@ Remove-Item test_temp.db
 cd frontend
 npm run test -- --run
 ```
-*Expected Result:* **22 passed across 3 test files** in ~4.4s.
+*Expected Result:* **26 passed across 3 test files** in ~4.5s.
 
 #### 5. Frontend Production Build & Linter Check
 ```powershell
@@ -602,8 +604,6 @@ For in-depth architectural and developer documentation, see the [`docs/`](docs/)
 - [docs/contracts.md](docs/contracts.md): Canonical data contracts, imports, and schema versioning rules.
 - [docs/api.md](docs/api.md): Complete REST API reference with PowerShell and curl examples.
 - [docs/security.md](docs/security.md): Security architecture, deterministic scope policy, and safe testing standards.
-- [docs/integration.md](docs/integration.md): Team integration and handoff guide for Persons 2 and 3.
-- [docs/person1-plan.md](docs/person1-plan.md): Person 1 roadmap, implementation milestones, and verified completion status.
 
 ---
 
@@ -679,4 +679,4 @@ For in-depth architectural and developer documentation, see the [`docs/`](docs/)
 
 ## License
 
-The license for this repository has not yet been specified. All rights are reserved by the original project authors and contributors.
+This project is licensed under the terms of the [MIT License](LICENSE).

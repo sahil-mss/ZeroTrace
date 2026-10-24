@@ -50,6 +50,9 @@ export interface AppContextType {
   createNewAssessment: (name: string, target: string, policy: string) => void;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  isBackendHealthy: boolean | null;
+  checkBackendHealth: () => Promise<void>;
+  isLoading: boolean;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);

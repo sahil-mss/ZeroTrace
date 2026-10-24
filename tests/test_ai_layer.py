@@ -6,6 +6,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from backend.app.core.config import settings
 from backend.app.main import app
 from modules.ai.adapter import DeterministicFallbackAdapter, RemoteLLMAdapter
 from modules.ai.config import AIConfig
@@ -210,7 +211,11 @@ def test_backend_api_endpoint(sample_finding_and_evidence):
         "evidence": [ev.model_dump(mode="json") for ev in evidence],
     }
 
-    resp = client.post("/api/ai/analyze", json=payload)
+    token = settings.API_AUTH_TOKEN or "test_token"
+    settings.API_AUTH_TOKEN = token
+    resp = client.post(
+        "/api/ai/analyze", json=payload, headers={"Authorization": f"Bearer {token}"}
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["summary"] != ""
@@ -222,6 +227,7 @@ def test_backend_api_endpoint(sample_finding_and_evidence):
 def test_api_authentication_enforcement(sample_finding_and_evidence, monkeypatch):
     finding, evidence = sample_finding_and_evidence
     monkeypatch.setenv("API_AUTH_TOKEN", "secret_lab_token_123")
+    monkeypatch.setattr(settings, "API_BEARER_TOKEN", "secret_lab_token_123")
     client = TestClient(app)
 
     payload = {

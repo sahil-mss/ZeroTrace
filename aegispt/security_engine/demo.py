@@ -28,26 +28,20 @@ from aegispt.security_engine.evaluation.lab_manager import LabManager
 from aegispt.security_engine.evaluation.scenarios import JUICE_SHOP_BENCHMARK_SCENARIOS
 from aegispt.security_engine.integrations.nmap.parser import NmapXMLParser
 from aegispt.security_engine.integrations.nmap.scanner import NmapScanner
-from aegispt.security_engine.integrations.zap.parser import ZAPAlertParser
 from aegispt.security_engine.integrations.zap.scanner import ZAPScanner
 from aegispt.security_engine.normalization.pipeline import NormalizationPipeline
 from aegispt.security_engine.schemas.enums import (
     AssetType,
     JobStatus,
-    PermissionLevel,
-    ScanStatus,
     VerificationStatus,
 )
-from aegispt.security_engine.schemas.job import ScanJobRequest, ScanJobResponse
+from aegispt.security_engine.schemas.job import ScanJobResponse
 from aegispt.security_engine.schemas.profile import (
-    MOCK_BASELINE_PROFILE,
     NMAP_FAST_DISCOVERY_PROFILE,
     ZAP_PASSIVE_BASELINE_PROFILE,
-    ResourceBudget,
 )
-from aegispt.security_engine.schemas.result import RawScanEvidence, ScanRequest, ScanResult
+from aegispt.security_engine.schemas.result import RawScanEvidence, ScanRequest
 from aegispt.security_engine.schemas.target import ScanTarget
-from aegispt.security_engine.service import ScannerService
 from aegispt.security_engine.verification.engine import VerificationEngine
 
 

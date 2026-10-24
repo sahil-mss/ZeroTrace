@@ -4,10 +4,8 @@ TASK 1: Core normalization service converting scanner-specific outputs into
 validated, deduplicated, and evidence-linked AegisPT Finding models.
 """
 
-from typing import Any
 from aegispt.security_engine.normalization.deduplicator import FindingDeduplicator
 from aegispt.security_engine.normalization.severity import SeverityMapper
-from aegispt.security_engine.schemas.enums import Severity
 from aegispt.security_engine.schemas.finding import NormalizedFinding
 from aegispt.security_engine.schemas.result import ScanResult
 

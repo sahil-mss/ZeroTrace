@@ -85,7 +85,7 @@ class HeaderSecurityVerifier(BaseVerifier):
                     f"Live probe confirmed header '{target_header}' is genuinely missing from response headers.",
                     {"status_code": resp.status_code},
                 )
-            except Exception as exc:
+            except Exception:
                 # Fall back to evidence analysis
                 pass
 

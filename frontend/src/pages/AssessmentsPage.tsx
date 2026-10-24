@@ -18,7 +18,11 @@ export const AssessmentsPage: React.FC = () => {
     cancelAssessment,
     createNewAssessment,
     addToast,
+    isBackendHealthy,
+    isLoading,
   } = useApp();
+
+  const isDemo = isBackendHealthy === false;
 
   const [showModal, setShowModal] = useState(false);
   const [newName, setNewName] = useState('');
@@ -42,7 +46,10 @@ export const AssessmentsPage: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="h1">Authorized Assessments</h1>
+          <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
+            <h1 className="h1" style={{ margin: 0 }}>Authorized Assessments</h1>
+            {isDemo && <span className="demo-data-tag">DEMO DATA</span>}
+          </div>
           <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>
             Enforce approved targets, permission boundaries, and audit controls.
           </p>
@@ -69,43 +76,56 @@ export const AssessmentsPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {assessments.map((asm) => {
-              const isSelected = asm.id === currentAssessmentId;
-              return (
-                <tr
-                  key={asm.id}
-                  className={isSelected ? 'selected' : ''}
-                  style={{
-                    backgroundColor: isSelected ? 'var(--color-surface-hover)' : 'inherit',
-                  }}
-                >
-                  <td className="font-mono" style={{ fontSize: '0.78rem', width: '130px' }}>
-                    {asm.id}
-                  </td>
+            {isLoading ? (
+              [1, 2, 3].map((idx) => (
+                <tr key={`asm-skeleton-${idx}`}>
+                  <td><span className="skeleton" style={{ width: '90px', height: '1.25rem' }} /></td>
                   <td>
-                    <div style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>{asm.name}</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)' }}>
-                      Created: {new Date(asm.created_at).toLocaleString()}
-                    </div>
+                    <span className="skeleton" style={{ width: '140px', height: '1rem', marginBottom: '4px' }} />
+                    <span className="skeleton" style={{ width: '100px', height: '0.75rem' }} />
                   </td>
-                  <td className="font-mono" style={{ fontSize: '0.8125rem' }}>
-                    {asm.target}
-                  </td>
-                  <td style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <Lock size={12} style={{ color: 'var(--color-accent)' }} />
-                      <span>{asm.scope_policy}</span>
-                    </div>
-                  </td>
-                  <td style={{ width: '130px' }}>
-                    <AssessmentStatusBadge status={asm.status} />
-                  </td>
-                  <td style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    {asm.allowed_checks.join(', ')}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      {!isSelected && (
+                  <td><span className="skeleton" style={{ width: '160px', height: '1rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '120px', height: '1rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '80px', height: '1.25rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '100px', height: '1rem' }} /></td>
+                  <td><span className="skeleton" style={{ width: '60px', height: '1.5rem' }} /></td>
+                </tr>
+              ))
+            ) : (
+              assessments.map((asm) => {
+                const isSelected = asm.id === currentAssessmentId;
+                return (
+                  <tr
+                    key={asm.id}
+                    className={isSelected ? 'selected' : ''}
+                  >
+                    <td className="font-mono text-sm cell-fit">
+                      {asm.id}
+                    </td>
+                    <td>
+                      <div style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>{asm.name}</div>
+                      <div className="dim text-xs">
+                        Created: {new Date(asm.created_at).toLocaleString()}
+                      </div>
+                    </td>
+                    <td className="font-mono text-sm">
+                      {asm.target}
+                    </td>
+                    <td className="muted text-xs">
+                      <div className="row" style={{ gap: '0.3rem' }}>
+                        <Lock size={12} style={{ color: 'var(--color-accent)' }} />
+                        <span>{asm.scope_policy}</span>
+                      </div>
+                    </td>
+                    <td className="cell-fit">
+                      <AssessmentStatusBadge status={asm.status} />
+                    </td>
+                    <td className="muted text-xs">
+                      {asm.allowed_checks.join(', ')}
+                    </td>
+                    <td className="cell-actions">
+                      <div className="row" style={{ justifyContent: 'flex-end', gap: '0.4rem' }}>
+                        {!isSelected && (
                         <button
                           className="btn btn-secondary"
                           style={{ padding: '0.25rem 0.5rem', fontSize: '0.72rem' }}
@@ -138,7 +158,7 @@ export const AssessmentsPage: React.FC = () => {
                   </td>
                 </tr>
               );
-            })}
+            }))}
           </tbody>
         </table>
       </div>

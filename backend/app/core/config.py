@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     def API_AUTH_TOKEN(self, val: str | None) -> None:
         self.API_BEARER_TOKEN = val
 
+    def get_auth_token(self) -> str | None:
+        """Returns the configured token from API_AUTH_TOKEN or API_BEARER_TOKEN."""
+        return self.API_BEARER_TOKEN
+
     CORS_ALLOWED_ORIGINS: list[str] = [
         "http://127.0.0.1:5173",
         "http://localhost:5173",

@@ -20,7 +20,16 @@ class ApiService {
     // In Vite: import.meta.env
     const env = (import.meta as unknown as { env: Record<string, string | undefined> }).env || {};
     this.baseUrl = env.VITE_API_URL || 'http://127.0.0.1:8000';
-    this.authToken = env.VITE_API_AUTH_TOKEN || '';
+    
+    // Check sessionStorage first for user-provided token, falling back to VITE_API_AUTH_TOKEN
+    let storedToken = '';
+    try {
+      storedToken = typeof window !== 'undefined' ? (sessionStorage.getItem('zerotrace_api_token') || '') : '';
+    } catch {
+      storedToken = '';
+    }
+    this.authToken = storedToken || env.VITE_API_AUTH_TOKEN || '';
+    
     // Development-only mock toggle: false by default when in dev or when API is reachable,
     // but can be toggled or fall back if explicitly requested
     this.useMock = env.VITE_USE_MOCK_API === 'true';
@@ -28,8 +37,25 @@ class ApiService {
 
   public setConfig(config: ApiClientConfig) {
     if (config.baseUrl !== undefined) this.baseUrl = config.baseUrl;
-    if (config.authToken !== undefined) this.authToken = config.authToken;
+    if (config.authToken !== undefined) {
+      this.authToken = config.authToken;
+      try {
+        if (typeof window !== 'undefined') {
+          if (config.authToken) {
+            sessionStorage.setItem('zerotrace_api_token', config.authToken);
+          } else {
+            sessionStorage.removeItem('zerotrace_api_token');
+          }
+        }
+      } catch {
+        // ignore sessionStorage errors in restricted environments
+      }
+    }
     if (config.useMock !== undefined) this.useMock = config.useMock;
+  }
+
+  public getAuthToken(): string {
+    return this.authToken;
   }
 
   public isMockEnabled(): boolean {
@@ -154,6 +180,13 @@ class ApiService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Authentication failed: missing or invalid API Bearer token. Please configure a valid token in Settings.');
+        }
+        if (response.status === 403) {
+          throw new Error('Access forbidden: current token does not possess authorization for this action.');
+        }
+
         let errMessage = `Server error HTTP ${response.status}`;
         try {
           const errData = await response.json();

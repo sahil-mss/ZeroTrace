@@ -1,6 +1,5 @@
 """Unit tests for AegisPT security engine schemas."""
 
-from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
@@ -13,7 +12,6 @@ from aegispt.security_engine.schemas import (
     ResourceBudget,
     ScanProfile,
     ScanRequest,
-    ScanStatus,
     ScanTarget,
     Severity,
 )

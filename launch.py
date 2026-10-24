@@ -4,8 +4,6 @@ Starts both the FastAPI backend and the Vite frontend, checks health,
 and automatically opens the ZeroTrace web dashboard in your default browser.
 """
 
-import os
-import signal
 import subprocess
 import sys
 import time
@@ -139,7 +137,7 @@ def main():
                     proc.wait(timeout=3)
                 except subprocess.TimeoutExpired:
                     proc.kill()
-            except Exception as e:
+            except Exception:
                 pass
         print("[+] All services stopped cleanly.")
 

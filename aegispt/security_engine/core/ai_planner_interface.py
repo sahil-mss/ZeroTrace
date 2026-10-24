@@ -21,7 +21,7 @@ from aegispt.security_engine.core.exceptions import (
     ScopeViolationError,
 )
 from aegispt.security_engine.core.scope import BaseScopeValidator, LocalScopeValidator
-from aegispt.security_engine.schemas.enums import AssetType, PermissionLevel
+from aegispt.security_engine.schemas.enums import PermissionLevel
 from aegispt.security_engine.schemas.job import ScanJobRequest
 from aegispt.security_engine.schemas.profile import APPROVED_SCAN_PROFILES, ResourceBudget, ScanProfile
 from aegispt.security_engine.schemas.target import ScanTarget
@@ -199,7 +199,7 @@ class AIRecommendationValidator:
             for eid in rec.evidence_ids:
                 if not eid or not isinstance(eid, str) or not eid.strip():
                     raise AIRecommendationValidationError(
-                        f"AI recommendation references an invalid empty or whitespace evidence ID."
+                        "AI recommendation references an invalid empty or whitespace evidence ID."
                     )
                 # Ensure no path traversal or suspicious tokens in evidence IDs
                 if any(c in eid for c in ["/", "\\", "..", "<", ">", ";", "&"]):

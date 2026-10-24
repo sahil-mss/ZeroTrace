@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/useApp';
 import {
   Sun,
@@ -9,8 +9,12 @@ import {
   Play,
   Terminal,
   Menu,
+  Key,
+  X,
+  Check,
 } from 'lucide-react';
 import { AssessmentStatusBadge } from './Badge';
+import { apiClient } from '../api/client';
 
 export const TopBar: React.FC = () => {
   const {
@@ -26,7 +30,25 @@ export const TopBar: React.FC = () => {
     cancelAssessment,
     sidebarOpen,
     setSidebarOpen,
+    addToast,
   } = useApp();
+
+  const [showTokenModal, setShowTokenModal] = useState(false);
+  const [tokenInput, setTokenInput] = useState(() => apiClient.getAuthToken());
+
+  const handleSaveToken = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = tokenInput.trim();
+    apiClient.setConfig({ authToken: trimmed });
+    setShowTokenModal(false);
+    addToast(
+      'API Authentication Updated',
+      trimmed
+        ? 'API Bearer token updated and saved in session storage.'
+        : 'API Bearer token removed.',
+      'info'
+    );
+  };
 
   return (
     <header className="topbar">
@@ -161,6 +183,33 @@ export const TopBar: React.FC = () => {
           <span style={{ fontWeight: 600 }}>API v1.0</span>
         </div>
 
+        {/* API Token Settings Button */}
+        <button
+          className="btn btn-icon"
+          onClick={() => {
+            setTokenInput(apiClient.getAuthToken());
+            setShowTokenModal(true);
+          }}
+          title="Configure API Bearer Token"
+          aria-label="Configure API Bearer Token"
+          style={{ position: 'relative' }}
+        >
+          <Key size={16} />
+          {apiClient.getAuthToken() && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '4px',
+                right: '4px',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-accent)',
+              }}
+            />
+          )}
+        </button>
+
         {/* Theme Toggle */}
         <button
           className="btn btn-icon"
@@ -171,6 +220,108 @@ export const TopBar: React.FC = () => {
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
       </div>
+
+      {/* API Token Configuration Modal */}
+      {showTokenModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="token-modal-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={() => setShowTokenModal(false)}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border-strong)',
+              boxShadow: 'var(--shadow-md)',
+              padding: '1.5rem',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Key size={18} style={{ color: 'var(--color-accent)' }} />
+                <h3 id="token-modal-title" style={{ fontSize: '1rem', margin: 0 }}>
+                  API Authentication Token
+                </h3>
+              </div>
+              <button
+                className="btn btn-icon"
+                onClick={() => setShowTokenModal(false)}
+                aria-label="Close API token settings"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Set your API Bearer token for authenticating with the ZeroTrace backend. This token is saved in your browser's session storage and sent in the <code style={{ color: 'var(--color-text-main)', background: 'var(--color-surface-subtle)', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>Authorization: Bearer</code> header.
+            </p>
+
+            <form onSubmit={handleSaveToken}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label
+                  htmlFor="api-token-input"
+                  style={{
+                    display: 'block',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    color: 'var(--color-text-muted)',
+                    marginBottom: '0.4rem',
+                  }}
+                >
+                  Bearer Token
+                </label>
+                <input
+                  id="api-token-input"
+                  type="password"
+                  className="input-text"
+                  placeholder="Paste Bearer token (e.g. secret token)"
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
+                  autoFocus
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowTokenModal(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <Check size={14} />
+                  <span>Save Token</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

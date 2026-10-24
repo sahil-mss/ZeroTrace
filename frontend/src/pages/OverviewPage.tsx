@@ -21,7 +21,11 @@ export const OverviewPage: React.FC = () => {
     setSelectedFindingId,
     startAssessment,
     cancelAssessment,
+    isBackendHealthy,
+    isLoading,
   } = useApp();
+
+  const isDemo = isBackendHealthy === false;
 
   const assessmentFindings = findings.filter((f) => f.assessment_id === currentAssessmentId);
   const assessmentAssets = assets.filter((a) => a.assessment_id === currentAssessmentId);
@@ -37,17 +41,26 @@ export const OverviewPage: React.FC = () => {
       <div className="panel panel-padded">
         <div className="row-between responsive-stack">
           <div>
-            <div className="row">
+            <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
               <span className="metric-label text-xs">
                 ACTIVE ASSESSMENT SCOPE
               </span>
+              {isDemo && <span className="demo-data-tag">DEMO DATA</span>}
               {currentAssessment && <AssessmentStatusBadge status={currentAssessment.status} />}
             </div>
             <h1 className="h1">
-              {currentAssessment?.name || 'No Active Assessment'}
+              {isLoading ? (
+                <span className="skeleton" style={{ width: '280px', height: '1.75rem', marginTop: '0.25rem' }} />
+              ) : (
+                currentAssessment?.name || 'No Active Assessment'
+              )}
             </h1>
             <div className="font-mono muted text-sm">
-              Target: {currentAssessment?.target || 'None'} · Policy: {currentAssessment?.scope_policy}
+              {isLoading ? (
+                <span className="skeleton" style={{ width: '380px', height: '1rem', marginTop: '0.35rem' }} />
+              ) : (
+                `Target: ${currentAssessment?.target || 'None'} · Policy: ${currentAssessment?.scope_policy}`
+              )}
             </div>
           </div>
 
@@ -91,7 +104,7 @@ export const OverviewPage: React.FC = () => {
             <AlertTriangle size={16} style={{ color: 'var(--color-sev-critical-text)' }} />
           </div>
           <div className="metric-value">
-            {criticals + highs}
+            {isLoading ? <span className="skeleton" style={{ width: '48px', height: '1.75rem' }} /> : criticals + highs}
           </div>
           <div className="metric-subtitle">
             {criticals} Critical · {highs} High · {mediums} Medium
@@ -107,7 +120,7 @@ export const OverviewPage: React.FC = () => {
             <Server size={16} className="muted" />
           </div>
           <div className="metric-value">
-            {assessmentAssets.length}
+            {isLoading ? <span className="skeleton" style={{ width: '48px', height: '1.75rem' }} /> : assessmentAssets.length}
           </div>
           <div className="metric-subtitle">
             In-scope services and endpoints
@@ -123,7 +136,7 @@ export const OverviewPage: React.FC = () => {
             <FileCheck2 size={16} style={{ color: 'var(--color-ver-confirmed-text)' }} />
           </div>
           <div className="metric-value">
-            {confirmedCount}
+            {isLoading ? <span className="skeleton" style={{ width: '48px', height: '1.75rem' }} /> : confirmedCount}
           </div>
           <div className="metric-subtitle">
             Backed by captured evidence records

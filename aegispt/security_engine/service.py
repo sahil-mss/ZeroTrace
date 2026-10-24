@@ -8,15 +8,12 @@ TASKS 1, 4, 5:
 
 from datetime import datetime, timezone
 from typing import Any
-import uuid
 
 from aegispt.security_engine.core.exceptions import (
-    ApprovalRequiredError,
     JobLifecycleError,
     ProfileValidationError,
     ScannerRegistryError,
     ScopeViolationError,
-    TargetValidationError,
 )
 from aegispt.security_engine.core.scope import BaseScopeValidator, LocalScopeValidator
 from aegispt.security_engine.integrations.base import BaseScanner
@@ -24,7 +21,7 @@ from aegispt.security_engine.integrations.mock import MockScanner
 from aegispt.security_engine.integrations.nmap import NmapScanner
 from aegispt.security_engine.integrations.zap import ZAPScanner
 from aegispt.security_engine.normalization import NormalizationPipeline
-from aegispt.security_engine.schemas.enums import JobStatus, ScanStatus, VerificationStatus
+from aegispt.security_engine.schemas.enums import JobStatus, ScanStatus
 from aegispt.security_engine.schemas.job import (
     JobStateTransition,
     ScanJob,
@@ -38,11 +35,6 @@ from aegispt.security_engine.schemas.result import (
     ScanResult,
 )
 from aegispt.security_engine.verification import VerificationEngine
-from aegispt.security_engine.verification.plugins import (
-    HeaderSecurityVerifier,
-    LabGroundTruthVerifier,
-    PassiveReflectionVerifier,
-)
 
 
 class ScannerRegistry:

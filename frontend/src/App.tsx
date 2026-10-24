@@ -20,28 +20,14 @@ import { apiClient } from './api/client';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { activePage } = useApp();
-  const [isBackendHealthy, setIsBackendHealthy] = React.useState<boolean | null>(null);
+  const { activePage, isBackendHealthy, checkBackendHealth } = useApp();
   const [isCheckingHealth, setIsCheckingHealth] = React.useState(false);
 
-  const checkBackendHealth = React.useCallback(async () => {
+  const handleRefreshHealth = async () => {
     setIsCheckingHealth(true);
-    const result = await apiClient.checkHealth();
-    setIsBackendHealthy(result.ok);
+    await checkBackendHealth();
     setIsCheckingHealth(false);
-  }, []);
-
-  React.useEffect(() => {
-    let mounted = true;
-    apiClient.checkHealth().then((result) => {
-      if (mounted) {
-        setIsBackendHealthy(result.ok);
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  };
 
   return (
     <div className="app-container">
@@ -71,7 +57,7 @@ const MainLayout: React.FC = () => {
               </span>
             </div>
             <button
-              onClick={checkBackendHealth}
+              onClick={handleRefreshHealth}
               disabled={isCheckingHealth}
               style={{
                 display: 'inline-flex',

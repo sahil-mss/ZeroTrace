@@ -185,4 +185,30 @@ describe('AI Analysis Service & Client Interaction', () => {
     expect(res.ok).toBe(false);
     expect(res.status).toBe('unreachable');
   });
+
+  it('10. Handles 401 Unauthorized with clear token instructions', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      json: async () => ({ detail: 'Invalid authentication token.' }),
+    });
+
+    await expect(apiClient.analyzeFinding(sqliFinding, sqliEvidence)).rejects.toThrow(
+      'Authentication failed: missing or invalid API Bearer token. Please configure a valid token in Settings.'
+    );
+  });
+
+  it('11. Handles 403 Forbidden with clear access instructions', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      json: async () => ({ detail: 'Forbidden' }),
+    });
+
+    await expect(apiClient.analyzeFinding(sqliFinding, sqliEvidence)).rejects.toThrow(
+      'Access forbidden: current token does not possess authorization for this action.'
+    );
+  });
 });

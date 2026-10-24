@@ -13,10 +13,7 @@ SECURITY CONTROLS:
 
 from datetime import datetime, timezone
 import hashlib
-import json
-from pathlib import Path
 import threading
-from typing import Any
 import requests
 
 from aegispt.security_engine.core.exceptions import (

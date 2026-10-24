@@ -2,7 +2,6 @@
 
 from datetime import datetime, timezone
 import pytest
-from pydantic import ValidationError
 
 from aegispt.security_engine.normalization import (
     FindingDeduplicator,

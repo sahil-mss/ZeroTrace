@@ -18,6 +18,7 @@ import {
 } from '../data/demoData';
 import { AppContext } from './appContextDefinition';
 import type { NavPage } from './appContextDefinition';
+import { apiClient } from '../api/client';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Theme initialization
@@ -51,6 +52,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [globalSearch, setGlobalSearch] = useState<string>('');
 
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [isBackendHealthy, setIsBackendHealthy] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const checkBackendHealth = async () => {
+    try {
+      const res = await apiClient.checkHealth();
+      setIsBackendHealthy(res.ok);
+    } catch {
+      setIsBackendHealthy(false);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    apiClient.checkHealth().then((res) => {
+      if (mounted) {
+        setIsBackendHealthy(res.ok);
+        // Simulate initial fetch loading state briefly for smooth skeleton transition
+        setTimeout(() => {
+          if (mounted) setIsLoading(false);
+        }, 200);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleSetActivePage = (page: NavPage) => {
     setActivePage(page);
@@ -177,6 +205,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createNewAssessment,
         sidebarOpen,
         setSidebarOpen,
+        isBackendHealthy,
+        checkBackendHealth,
+        isLoading,
       }}
     >
       {children}

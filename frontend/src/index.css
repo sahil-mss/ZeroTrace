@@ -104,7 +104,7 @@
 
   --color-text-main: #f5f5f5;
   --color-text-muted: #a3a3a3;
-  --color-text-dim: #737373;
+  --color-text-dim: #8a8a8a;
 
   /* Accent: High-contrast warm amber / gold (no blue) */
   --color-accent: #f59e0b;
@@ -460,10 +460,31 @@ h3, .h3 {
 
 .data-table {
   width: 100%;
-  min-width: 600px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;
+}
+
+@media (min-width: 641px) {
+  .data-table {
+    min-width: 600px;
+  }
+}
+
+.cell-fit {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.cell-severity {
+  width: 110px;
+  white-space: nowrap;
+}
+
+.cell-actions {
+  width: 90px;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .data-table th {
@@ -973,5 +994,46 @@ h3, .h3 {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Skeleton Loading State Shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-subtle) 25%,
+    var(--color-surface-hover) 50%,
+    var(--color-surface-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Persistent Demo Data Indicator Tag */
+.demo-data-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-xs);
+  background-color: rgba(245, 158, 11, 0.12);
+  color: var(--color-accent);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  vertical-align: middle;
 }
 
