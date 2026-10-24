@@ -39,6 +39,8 @@ interface AppContextType {
   findings: Finding[];
   evidence: Evidence[];
   aiAnalysis: Record<string, AIAnalysis>;
+  setAiAnalysis: React.Dispatch<React.SetStateAction<Record<string, AIAnalysis>>>;
+  updateFindingAnalysis: (findingId: string, analysis: AIAnalysis) => void;
   activityLogs: ActivityEvent[];
   selectedFindingId: string | null;
   setSelectedFindingId: (id: string | null) => void;
@@ -84,10 +86,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [assets] = useState<Asset[]>(DEMO_ASSETS);
   const [findings] = useState<Finding[]>(DEMO_FINDINGS);
   const [evidence] = useState<Evidence[]>(DEMO_EVIDENCE);
-  const [aiAnalysis] = useState<Record<string, AIAnalysis>>(DEMO_AI_ANALYSIS);
+  const [aiAnalysis, setAiAnalysis] = useState<Record<string, AIAnalysis>>(DEMO_AI_ANALYSIS);
   const [activityLogs, setActivityLogs] = useState<ActivityEvent[]>(DEMO_ACTIVITY_LOGS);
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState<string>('');
+
+  const updateFindingAnalysis = (findingId: string, analysis: AIAnalysis) => {
+    setAiAnalysis((prev) => ({
+      ...prev,
+      [findingId]: analysis,
+    }));
+  };
 
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -182,6 +191,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         findings,
         evidence,
         aiAnalysis,
+        setAiAnalysis,
+        updateFindingAnalysis,
         activityLogs,
         selectedFindingId,
         setSelectedFindingId,
