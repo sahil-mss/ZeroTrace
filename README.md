@@ -47,5 +47,24 @@ python -m venv .venv
 # Linux/macOS:
 source .venv/bin/activate
 
-pip install -r requirements-dev.txt
+### Running Tests
+```bash
+pytest -v
+```
+
+### Running the End-to-End Demonstration
+```bash
+python scripts/run_demonstration.py
+```
+
+### Documentation & Reference Manual
+For complete architecture documentation, configuration options, troubleshooting, and scanner guides, see:
+- [Security Engine Operator & Developer Manual](docs/SECURITY_ENGINE_MANUAL.md)
+- [Backend & AI Integration Guide](docs/BACKEND_AI_INTEGRATION.md)
+- [Verification Engine Specification](docs/VERIFICATION_ENGINE.md)
+- [Benchmark Evaluation Framework](docs/EVALUATION_FRAMEWORK.md)
+- [Local Lab Setup Guide](docs/LAB_SETUP.md)
+- [Nmap Adapter Specification](docs/NMAP_ADAPTER.md)
+- [OWASP ZAP Adapter Specification](docs/ZAP_ADAPTER.md)
+- [Finding Normalization Engine Specification](docs/NORMALIZATION_ENGINE.md)
 ```

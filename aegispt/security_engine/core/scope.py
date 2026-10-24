@@ -117,7 +117,9 @@ class LocalScopeValidator(BaseScopeValidator):
 
         # Rule 3: Asset type specific validation
         if target.asset_type == AssetType.IP_ADDRESS:
-            if not self._is_ip_allowed(val):
+            # Safely strip port if present (e.g. 127.0.0.1:8080)
+            ip_val = val.split(":")[0] if ":" in val and "." in val else val
+            if not self._is_ip_allowed(ip_val):
                 raise ScopeViolationError(
                     f"IP address '{val}' is not in permitted local/private networks "
                     f"for assessment '{assessment_id or 'LOCAL_LAB'}'."
@@ -160,6 +162,13 @@ class LocalScopeValidator(BaseScopeValidator):
             if hostname_clean not in self.allowed_domains and not self._is_ip_allowed(hostname_clean):
                 raise ScopeViolationError(
                     f"Hostname '{val}' is not in approved local domains list."
+                )
+
+        elif target.asset_type == AssetType.PORT_SERVICE:
+            host_part = val.split(":")[0].lower().strip() if ":" in val else val.lower().strip()
+            if host_part not in self.allowed_domains and not self._is_ip_allowed(host_part):
+                raise ScopeViolationError(
+                    f"Port service host '{host_part}' is not in approved local domains or IP subnets."
                 )
 
         return True

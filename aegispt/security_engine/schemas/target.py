@@ -81,7 +81,7 @@ class ScanTarget(BaseModel):
             parsed = urlparse(val)
             val = parsed.hostname or val
 
-        if val.lower() in ("localhost", "127.0.0.1", "::1"):
+        if val.lower() in ("localhost", "127.0.0.1", "::1", "juice-shop", "local-lab"):
             return True
 
         try:

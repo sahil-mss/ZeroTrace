@@ -176,9 +176,10 @@ class NmapScanner(BaseScanner):
                 logs=[f"Executable check failed: '{self.nmap_binary}' not found."],
             )
 
-        # Ensure output directory exists
+        # Ensure output directory exists and sanitize request_id for safe filesystem path
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
-        output_xml_path = self.artifacts_dir / f"nmap_{request.request_id}.xml"
+        safe_req_id = "".join(c for c in request.request_id if c.isalnum() or c in ("-", "_")) or "scan"
+        output_xml_path = self.artifacts_dir / f"nmap_{safe_req_id}.xml"
 
         # Build argument list
         cmd_args = self.build_command_args(request, output_xml_path)

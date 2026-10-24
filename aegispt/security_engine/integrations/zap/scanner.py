@@ -183,7 +183,8 @@ class ZAPScanner(BaseScanner):
 
         # 3. Archive raw evidence with SHA-256 integrity hash
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
-        evidence_file = self.artifacts_dir / f"zap_{request.request_id}.json"
+        safe_req_id = "".join(c for c in request.request_id if c.isalnum() or c in ("-", "_")) or "scan"
+        evidence_file = self.artifacts_dir / f"zap_{safe_req_id}.json"
         raw_bytes = raw_json_str.encode("utf-8")
         evidence_file.write_bytes(raw_bytes)
         sha256 = hashlib.sha256(raw_bytes).hexdigest()
