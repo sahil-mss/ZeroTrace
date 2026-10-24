@@ -45,6 +45,9 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="app-container">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       <Sidebar />
 
       <div className="main-wrapper">
@@ -91,7 +94,7 @@ const MainLayout: React.FC = () => {
         <div className="demo-banner">{DEMO_BANNER_LABEL}</div>
         <TopBar />
 
-        <main className="main-content">
+        <main id="main-content" className="main-content">
           <AssessmentProgressBar />
           <ErrorBoundary>
             {activePage === 'overview' && <OverviewPage />}

@@ -16,7 +16,7 @@
 
   --color-text-main: #f5f5f5;
   --color-text-muted: #a3a3a3;
-  --color-text-dim: #737373;
+  --color-text-dim: #8a8a8a;
 
   /* Restrained Accent: Precision Warm Gold / Amber (No Blue) */
   --color-accent: #f59e0b;
@@ -642,7 +642,15 @@ h3, .h3 {
 
 .input-text:focus {
   border-color: var(--color-accent);
-  outline: none;
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+  box-shadow: 0 0 0 2px var(--color-accent-subtle);
+}
+
+.input-select:focus {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
 }
 
 .input-select {
@@ -934,3 +942,36 @@ h3, .h3 {
     color: #111827 !important;
   }
 }
+
+/* Accessibility: Skip to main content link */
+.skip-link {
+  position: absolute;
+  top: -9999px;
+  left: 1rem;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  z-index: 10000;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid #ffffff;
+}
+
+/* Accessibility: Honor prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

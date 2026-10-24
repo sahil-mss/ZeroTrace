@@ -126,6 +126,7 @@ export const Sidebar: React.FC = () => {
           return (
             <button
               key={item.id}
+              aria-current={isActive ? 'page' : undefined}
               onClick={() => {
                 setActivePage(item.id);
                 setSidebarOpen(false);
