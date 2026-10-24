@@ -1,0 +1,1 @@
+{"authoritative": true, "query_target": "lab.example.test", "records": {"A": ["192.168.1.10"], "CNAME": ["alias.lab.example.test"], "MX": ["mail.lab.example.test"], "TXT": ["v=spf1 -all"]}}

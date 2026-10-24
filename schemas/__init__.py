@@ -1,39 +1,29 @@
 from schemas.enums import (
     AssessmentStatus,
     AssetType,
-    EvidenceSourceType,
-    JobStatus,
-    ScopeStatus,
-    Severity,
-    TestPermissionLevel,
+    ConfidenceLevel,
+    FindingSeverity,
     VerificationStatus,
 )
-from schemas.models import (
+from schemas.contracts import (
+    AIAnalysis,
     Assessment,
     Asset,
-    AuditEvent,
+    DiscoveredService,
     Evidence,
     Finding,
-    Job,
-    JobAuditEntry,
-    ScopePolicy,
 )
 
 __all__ = [
-    "ScopeStatus",
     "AssessmentStatus",
-    "TestPermissionLevel",
     "AssetType",
-    "Severity",
+    "ConfidenceLevel",
+    "FindingSeverity",
     "VerificationStatus",
-    "JobStatus",
-    "EvidenceSourceType",
-    "ScopePolicy",
     "Assessment",
     "Asset",
+    "DiscoveredService",
     "Evidence",
     "Finding",
-    "Job",
-    "JobAuditEntry",
-    "AuditEvent",
+    "AIAnalysis",
 ]

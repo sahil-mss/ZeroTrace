@@ -1,33 +1,39 @@
-"""
-Legacy schemas.enums module.
-Canonical definitions have moved to `aegis_common.enums`.
-Re-exported here for backward compatibility.
-"""
+from enum import Enum
 
-from aegis_common.enums import (
-    AssessmentStatus,
-    AssetType,
-    AuditOutcome,
-    DataClassification,
-    EvidenceSourceType,
-    JobStatus,
-    ScopeStatus,
-    Severity,
-    TargetType,
-    TestPermissionLevel,
-    VerificationStatus,
-)
 
-__all__ = [
-    "AssessmentStatus",
-    "AssetType",
-    "AuditOutcome",
-    "DataClassification",
-    "EvidenceSourceType",
-    "JobStatus",
-    "ScopeStatus",
-    "Severity",
-    "TargetType",
-    "TestPermissionLevel",
-    "VerificationStatus",
-]
+class AssessmentStatus(str, Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class AssetType(str, Enum):
+    DOMAIN = "domain"
+    IP = "ip"
+    WEB_APP = "web_app"
+    API_ENDPOINT = "api_endpoint"
+    SERVICE = "service"
+    OTHER = "other"
+
+
+class FindingSeverity(str, Enum):
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+    INFORMATIONAL = "informational"
+
+
+class ConfidenceLevel(str, Enum):
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+
+class VerificationStatus(str, Enum):
+    CONFIRMED = "confirmed"
+    LIKELY = "likely"
+    UNVERIFIED = "unverified"
+    FALSE_POSITIVE = "false_positive"

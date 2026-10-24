@@ -1,55 +1,38 @@
-# Byte-compiled / optimized / DLL files & Caches
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-
-# Virtual environments
 .venv/
 venv/
-ENV/
-env/
+*.egg-info/
+dist/
+build/
 
-# Environment files & Local secrets
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Secrets
 .env
-.env.*
-!.env.example
+.env.local
+*.pem
+*.key
 
-# Database files & Local runtime directories
-*.sqlite
-*.sqlite3
-*.db
-*.db-journal
-*.db-wal
-aegis_data/
-
-# Test output & coverage artifacts
+# Test & coverage
+.pytest_cache/
 .coverage
 htmlcov/
-coverage.xml
-test-results/
 
-# Collected scan artifacts, evidence blobs & raw tool outputs
-/storage/
-scan_output/
-*.xml
-*.log
-
-# Generated datasets
-datasets/raw/
-datasets/processed/
-datasets/labels/
-
-# IDE & Editor settings
-.vscode/
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 
-# Packaging & Build distribution
-dist/
-build/
-*.egg-info/
+# Datasets & raw scans
+datasets/raw/
+scan_artifacts/
