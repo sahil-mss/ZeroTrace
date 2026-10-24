@@ -6,7 +6,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app import app
+from backend.app.main import app
 from modules.ai.adapter import DeterministicFallbackAdapter, RemoteLLMAdapter
 from modules.ai.config import AIConfig
 from schemas.contracts import Evidence, Finding

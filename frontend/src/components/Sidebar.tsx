@@ -102,7 +102,7 @@ export const Sidebar: React.FC = () => {
                 fontWeight: 600,
               }}
             >
-              AegisPT Security Core
+              ZeroTrace Security Core
             </div>
           </div>
         </div>

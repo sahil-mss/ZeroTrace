@@ -1,6 +1,6 @@
-# Permanent Project Security and Engineering Rules — AegisPT
+# Permanent Project Security and Engineering Rules — ZeroTrace
 
-These rules apply to all automated agents, developers, and integrated modules across the AegisPT project. They are permanent, binding, and must be strictly followed at all times.
+These rules apply to all automated agents, developers, and integrated modules across the ZeroTrace project. They are permanent, binding, and must be strictly followed at all times.
 
 ## 1. Scope, Authorization & Policy Rules
 - **Explicit Authorization Only**: Assessments must only be performed against explicitly authorized assets and approved lab environments (e.g., local OWASP Juice Shop).

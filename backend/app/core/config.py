@@ -22,14 +22,22 @@ class Settings(BaseSettings):
     PORT: int = 8000
 
     # Authentication & Security
-    # Shared API Bearer Token is a development prototype, not a complete multi-user system.
-    # When unset or empty, protected endpoints fail closed.
+    # Shared API Token is a development prototype, not a complete multi-user system.
+    # When unset or empty, protected endpoints fail closed unless ZEROTRACE_DEV_OPEN=true.
     API_BEARER_TOKEN: str | None = None
+    ZEROTRACE_DEV_OPEN: bool = False
+
+    @property
+    def API_AUTH_TOKEN(self) -> str | None:
+        return self.API_BEARER_TOKEN
+
+    @API_AUTH_TOKEN.setter
+    def API_AUTH_TOKEN(self, val: str | None) -> None:
+        self.API_BEARER_TOKEN = val
+
     CORS_ALLOWED_ORIGINS: list[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5173",
     ]
 
     # Storage paths

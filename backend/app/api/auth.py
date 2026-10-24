@@ -34,12 +34,16 @@ def verify_api_token(
     Performs constant-time comparison via secrets.compare_digest.
     Never logs or exposes the token value in logs or audit metadata.
     """
-    configured_token = settings.API_BEARER_TOKEN
+    configured_token = settings.API_AUTH_TOKEN
+
+    # Optional development open mode
+    if settings.ZEROTRACE_DEV_OPEN and not configured_token:
+        return "open_dev_operator"
 
     # 1. Fail closed if authentication token is unconfigured on the server
     if not configured_token or not configured_token.strip():
         logger.warning(
-            "Access denied: API_BEARER_TOKEN is not configured on the server. Failing closed."
+            "Access denied: API_AUTH_TOKEN is not configured on the server. Failing closed."
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
