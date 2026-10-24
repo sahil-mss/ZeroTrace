@@ -40,3 +40,6 @@ artifacts/
 aegis_data/
 *.db
 *.sqlite3
+
+# Local Netlify folder
+.netlify
