@@ -27,6 +27,8 @@ from aegispt.security_engine.schemas.profile import (
     NMAP_SERVICE_VERSION_PROFILE,
     ResourceBudget,
     ScanProfile,
+    ZAP_ACTIVE_BASELINE_PROFILE,
+    ZAP_PASSIVE_BASELINE_PROFILE,
 )
 from aegispt.security_engine.schemas.result import (
     RawScanEvidence,
@@ -57,6 +59,8 @@ __all__ = [
     "NMAP_FAST_DISCOVERY_PROFILE",
     "NMAP_SERVICE_VERSION_PROFILE",
     "NMAP_CUSTOM_PORTS_PROFILE",
+    "ZAP_PASSIVE_BASELINE_PROFILE",
+    "ZAP_ACTIVE_BASELINE_PROFILE",
     # Finding & Evidence
     "EvidenceReference",
     "NormalizedFinding",

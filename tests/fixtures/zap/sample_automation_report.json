@@ -1,0 +1,40 @@
+{
+  "@programName": "ZAP",
+  "@version": "2.14.0",
+  "@generated": "Fri, 24 Oct 2026 20:00:00",
+  "site": [
+    {
+      "@name": "http://127.0.0.1:3000",
+      "@host": "127.0.0.1",
+      "@port": "3000",
+      "@ssl": "false",
+      "alerts": [
+        {
+          "pluginid": "10021",
+          "alertRef": "10021",
+          "alert": "X-Content-Type-Options Header Missing",
+          "name": "X-Content-Type-Options Header Missing",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "desc": "The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'.",
+          "instances": [
+            {
+              "uri": "http://127.0.0.1:3000/main.js",
+              "method": "GET",
+              "param": "",
+              "attack": "",
+              "evidence": ""
+            }
+          ],
+          "count": "1",
+          "solution": "Ensure that the application/web-server sets the X-Content-Type-Options header to 'nosniff'.",
+          "otherinfo": "This helps prevent drive-by downloads and MIME confusion attacks.",
+          "reference": "https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/compatibility/gg622941(v=vs.85)",
+          "cweid": "693",
+          "wascid": "15"
+        }
+      ]
+    }
+  ]
+}

@@ -209,6 +209,36 @@ NMAP_CUSTOM_PORTS_PROFILE = ScanProfile(
     parameters={"flags": ["-sV", "-T4", "-Pn", "--no-stylesheet"]},
 )
 
+ZAP_PASSIVE_BASELINE_PROFILE = ScanProfile(
+    profile_id="zap_passive_baseline",
+    name="OWASP ZAP Passive Baseline",
+    description="Non-intrusive spidering and passive alert inspection without active payloads.",
+    supported_asset_types=[AssetType.WEB_URL],
+    required_permission_level=PermissionLevel.SAFE_AUDIT,
+    resource_budget=ResourceBudget(max_cpu_percent=50, max_memory_mb=512, max_rate_limit=50),
+    timeout_seconds=180,
+    max_concurrency=1,
+    expected_output_format=OutputFormat.JSON,
+    potential_impact=ImpactLevel.LOW,
+    requires_human_approval=False,
+    parameters={"scan_mode": "passive", "spider": True, "ajax_spider": False},
+)
+
+ZAP_ACTIVE_BASELINE_PROFILE = ScanProfile(
+    profile_id="zap_active_baseline",
+    name="OWASP ZAP Controlled Active Scan",
+    description="Controlled active vulnerability probes restricted to local lab. Requires operator approval.",
+    supported_asset_types=[AssetType.WEB_URL],
+    required_permission_level=PermissionLevel.ACTIVE_PROBE,
+    resource_budget=ResourceBudget(max_cpu_percent=60, max_memory_mb=1024, max_rate_limit=20),
+    timeout_seconds=300,
+    max_concurrency=1,
+    expected_output_format=OutputFormat.JSON,
+    potential_impact=ImpactLevel.MEDIUM,
+    requires_human_approval=True,
+    parameters={"scan_mode": "active", "policy": "Default Policy", "max_depth": 3, "spider": True},
+)
+
 # Registry dictionary mapping profile_id to validated profile instance
 APPROVED_SCAN_PROFILES: dict[str, ScanProfile] = {
     MOCK_BASELINE_PROFILE.profile_id: MOCK_BASELINE_PROFILE,
@@ -217,4 +247,6 @@ APPROVED_SCAN_PROFILES: dict[str, ScanProfile] = {
     NMAP_FAST_DISCOVERY_PROFILE.profile_id: NMAP_FAST_DISCOVERY_PROFILE,
     NMAP_SERVICE_VERSION_PROFILE.profile_id: NMAP_SERVICE_VERSION_PROFILE,
     NMAP_CUSTOM_PORTS_PROFILE.profile_id: NMAP_CUSTOM_PORTS_PROFILE,
+    ZAP_PASSIVE_BASELINE_PROFILE.profile_id: ZAP_PASSIVE_BASELINE_PROFILE,
+    ZAP_ACTIVE_BASELINE_PROFILE.profile_id: ZAP_ACTIVE_BASELINE_PROFILE,
 }
