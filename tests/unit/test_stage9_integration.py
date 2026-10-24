@@ -460,5 +460,51 @@ class TestAIPlannerInterface(unittest.TestCase):
         self.assertIn("malformed or unsafe evidence id", str(ctx.exception).lower())
 
 
+class TestTask1ContractAndAliases(unittest.TestCase):
+    """Verifies Task 1 required contract fields, validate_request, and API aliases."""
+
+    def setUp(self) -> None:
+        self.service = ScannerService()
+
+    def test_request_with_approved_profile_and_string_target(self) -> None:
+        """ScanJobRequest accepts string target and approved_profile alias per Task 1 contract."""
+        req = ScanJobRequest(
+            assessment_id="assess-t1-01",
+            asset_id="asset-t1-01",
+            target="http://127.0.0.1:3000",
+            scanner_id="mock_scanner",
+            approved_profile="mock_baseline",
+        )
+        self.assertEqual(req.profile_id, "mock_baseline")
+        self.assertEqual(req.target.target_value, "http://127.0.0.1:3000")
+        self.assertEqual(req.target.asset_type, AssetType.WEB_URL)
+
+    def test_service_validate_request(self) -> None:
+        """ScannerService.validate_request validates request before execution."""
+        req = ScanJobRequest(
+            assessment_id="assess-t1-02",
+            asset_id="asset-t1-02",
+            target="http://127.0.0.1:3000",
+            scanner_id="mock_scanner",
+            approved_profile="mock_baseline",
+        )
+        self.assertTrue(self.service.validate_request(req))
+
+    def test_service_run_scan_and_execute_aliases(self) -> None:
+        """ScannerService exposes run_scan and execute as execution aliases."""
+        req = ScanJobRequest(
+            assessment_id="assess-t1-03",
+            asset_id="asset-t1-03",
+            target="http://127.0.0.1:3000",
+            scanner_id="mock_scanner",
+            approved_profile="mock_baseline",
+        )
+        resp1 = self.service.run_scan(req)
+        self.assertEqual(resp1.status, JobStatus.COMPLETED)
+
+        resp2 = self.service.execute(req)
+        self.assertEqual(resp2.status, JobStatus.COMPLETED)
+
+
 if __name__ == "__main__":
     unittest.main()

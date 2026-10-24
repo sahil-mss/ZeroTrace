@@ -8,11 +8,11 @@ from datetime import datetime, timezone
 from typing import Any
 import uuid
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-from aegispt.security_engine.schemas.enums import JobStatus, PermissionLevel, VerificationStatus
+from aegispt.security_engine.schemas.enums import AssetType, JobStatus, PermissionLevel, VerificationStatus
 from aegispt.security_engine.schemas.finding import NormalizedFinding
-from aegispt.security_engine.schemas.profile import ResourceBudget
+from aegispt.security_engine.schemas.profile import ResourceBudget, ScanProfile
 from aegispt.security_engine.schemas.result import (
     RawScanEvidence,
     ScannerExecutionError,
@@ -54,9 +54,12 @@ class ScanJobRequest(BaseModel):
         description="Registered scanner adapter ID (e.g. 'nmap', 'owasp_zap', 'mock_scanner').",
     )
     profile_id: str = Field(
-        ...,
-        min_length=1,
+        default="",
         description="Predefined approved scan profile identifier.",
+    )
+    approved_profile: str | ScanProfile | None = Field(
+        default=None,
+        description="Approved scan profile instance or identifier (Task 1 contract alias).",
     )
     permission_level: PermissionLevel = Field(
         default=PermissionLevel.SAFE_AUDIT,
@@ -74,6 +77,41 @@ class ScanJobRequest(BaseModel):
         default_factory=dict,
         description="Supplementary execution flags or simulation directives.",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_request_inputs(cls, data: Any) -> Any:
+        """Coerce flexible inputs (strings, aliases) to conform to the strict contract."""
+        if isinstance(data, dict):
+            # 1. Normalize target if string was passed
+            raw_target = data.get("target")
+            if isinstance(raw_target, str):
+                target_str = raw_target.strip()
+                if target_str.startswith(("http://", "https://")):
+                    asset_type = AssetType.WEB_URL
+                elif "/" in target_str:
+                    asset_type = AssetType.CIDR_RANGE
+                elif any(c.isalpha() for c in target_str.replace("localhost", "").replace("juice-shop", "").replace("local-lab", "")):
+                    asset_type = AssetType.HOSTNAME
+                else:
+                    asset_type = AssetType.IP_ADDRESS
+                data["target"] = ScanTarget(asset_type=asset_type, target_value=target_str)
+
+            # 2. Normalize profile identifier from approved_profile, profile, or profile_id
+            prof = data.get("approved_profile") or data.get("profile") or data.get("profile_id")
+            if prof is not None:
+                if hasattr(prof, "profile_id"):
+                    pid = str(prof.profile_id)
+                elif isinstance(prof, str):
+                    pid = prof
+                else:
+                    pid = str(prof)
+                data["profile_id"] = pid
+                data["approved_profile"] = pid
+            elif not data.get("profile_id"):
+                raise ValueError("Scan request must specify an approved profile ('approved_profile' or 'profile_id').")
+
+        return data
 
 
 class JobStateTransition(BaseModel):

@@ -114,8 +114,30 @@ class ScannerService:
         job.status = new_status
         job.logs.append(f"[{transition.timestamp.isoformat()}] State transition: {transition.from_status} -> {new_status} (Reason: {reason})")
 
-    def create_job(self, request: ScanJobRequest) -> ScanJob:
+    def validate_request(self, request: ScanJobRequest) -> bool:
+        """Validate scan request parameters before execution (Task 1).
+
+        Ensures:
+        1. Scanner ID is registered in the engine.
+        2. Profile ID is predefined and approved.
+        3. Target is within authorized scope boundaries.
+
+        Raises:
+            ScannerRegistryError: If scanner_id is unknown.
+            ProfileValidationError: If profile_id is unapproved.
+            ScopeViolationError: If target violates engagement scope.
+        """
+        if not self.registry.has(request.scanner_id):
+            raise ScannerRegistryError(f"Scanner '{request.scanner_id}' is not registered.")
+        if request.profile_id not in self.approved_profiles:
+            raise ProfileValidationError(f"Profile '{request.profile_id}' is not approved.")
+        self.scope_validator.validate_target(request.target, assessment_id=request.assessment_id)
+        return True
+
+    def create_job(self, request: ScanJobRequest | dict[str, Any]) -> ScanJob:
         """Create and store a new scan job in CREATED state."""
+        if isinstance(request, dict):
+            request = ScanJobRequest(**request)
         job = ScanJob(
             job_id=request.job_id,
             assessment_id=request.assessment_id,
@@ -154,7 +176,7 @@ class ScannerService:
 
         return self._build_response(job)
 
-    def run_job(self, request: ScanJobRequest) -> ScanJobResponse:
+    def run_job(self, request: ScanJobRequest | dict[str, Any]) -> ScanJobResponse:
         """Execute a scan job through its complete lifecycle.
 
         Full lifecycle:
@@ -165,6 +187,8 @@ class ScannerService:
         5. REVIEW (finding normalization and verification)
         6. COMPLETED / FAILED / CANCELLED / NEEDS_APPROVAL
         """
+        if isinstance(request, dict):
+            request = ScanJobRequest(**request)
         job = self.create_job(request)
 
         # ---------------------------------------------------------
@@ -327,3 +351,7 @@ class ScannerService:
             error=job.error,
             logs=job.logs,
         )
+
+    # Method aliases for orchestrator API compatibility
+    run_scan = run_job
+    execute = run_job

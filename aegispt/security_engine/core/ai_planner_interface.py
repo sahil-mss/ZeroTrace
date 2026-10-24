@@ -224,3 +224,7 @@ class AIRecommendationValidator:
                 **rec.metadata,
             },
         )
+
+    # API aliases for Person 3 caller compatibility
+    validate = validate_recommendation
+    validate_plan = validate_recommendation

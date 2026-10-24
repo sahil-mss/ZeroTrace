@@ -54,6 +54,17 @@ class BaseScopeValidator(ABC):
         """
         raise NotImplementedError
 
+    def validate_scope(self, target: ScanTarget, assessment_id: str | None = None) -> bool:
+        """Alias for validate_target matching Person 1's scope interface."""
+        return self.validate_target(target, assessment_id)
+
+    def is_in_scope(self, target: ScanTarget, assessment_id: str | None = None) -> bool:
+        """Boolean check whether target is within scope."""
+        try:
+            return self.validate_target(target, assessment_id)
+        except ScopeViolationError:
+            return False
+
 
 class LocalScopeValidator(BaseScopeValidator):
     """Provisional scope validator enforcing strict local lab boundaries.
