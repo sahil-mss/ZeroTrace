@@ -15,6 +15,8 @@ import { ReportsPage } from './pages/ReportsPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { DEMO_BANNER_LABEL } from './data/demoData';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 const MainLayout: React.FC = () => {
   const { activePage } = useApp();
 
@@ -28,13 +30,15 @@ const MainLayout: React.FC = () => {
 
         <main className="main-content">
           <AssessmentProgressBar />
-          {activePage === 'overview' && <OverviewPage />}
-          {activePage === 'assessments' && <AssessmentsPage />}
-          {activePage === 'assets' && <AssetsPage />}
-          {activePage === 'findings' && <FindingsPage />}
-          {activePage === 'ai-analysis' && <AIAnalysisPage />}
-          {activePage === 'reports' && <ReportsPage />}
-          {activePage === 'activity' && <ActivityPage />}
+          <ErrorBoundary>
+            {activePage === 'overview' && <OverviewPage />}
+            {activePage === 'assessments' && <AssessmentsPage />}
+            {activePage === 'assets' && <AssetsPage />}
+            {activePage === 'findings' && <FindingsPage />}
+            {activePage === 'ai-analysis' && <AIAnalysisPage />}
+            {activePage === 'reports' && <ReportsPage />}
+            {activePage === 'activity' && <ActivityPage />}
+          </ErrorBoundary>
         </main>
       </div>
 

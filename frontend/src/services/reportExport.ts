@@ -1,4 +1,4 @@
-import type { Assessment, Asset, Finding, Evidence, AIAnalysis } from '../types';
+import type { Assessment, Asset, Finding, Evidence, AIAnalysis, AssessmentStatus, FindingSeverity, ConfidenceLevel, VerificationStatus } from '../types';
 
 export interface AssessmentReportData {
   metadata: {
@@ -10,7 +10,7 @@ export interface AssessmentReportData {
     id: string;
     name: string;
     target: string;
-    status: string;
+    status: AssessmentStatus;
     created_at: string;
     completed_at?: string;
     scope_policy: string;
@@ -62,9 +62,9 @@ export interface AssessmentReportData {
     title: string;
     description: string;
     affected_asset: string;
-    severity: string;
-    confidence: string;
-    verification_status: string;
+    severity: FindingSeverity;
+    confidence: ConfidenceLevel;
+    verification_status: VerificationStatus;
     taxonomy: string;
     source_tool: string;
     evidence_references: string[];
@@ -94,8 +94,8 @@ export interface AssessmentReportData {
     priority: number;
     finding_id: string;
     title: string;
-    severity: string;
-    verification_status: string;
+    severity: FindingSeverity;
+    verification_status: VerificationStatus;
     action: string;
   }[];
 }

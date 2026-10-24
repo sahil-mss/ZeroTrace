@@ -145,35 +145,18 @@ export const FindingsPage: React.FC = () => {
     searchQuery.trim().length > 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div className="stack">
       {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
+      <div className="row-between responsive-stack">
         <div>
           <h1 className="h1">Security Findings Explorer</h1>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>
+          <p className="muted text-sm" style={{ marginTop: '0.2rem' }}>
             Empirical findings triage with explicit distinction between impact severity, scanner confidence, and verification state.
           </p>
         </div>
 
         {/* Results Counter */}
-        <div
-          style={{
-            fontSize: '0.75rem',
-            color: 'var(--color-text-dim)',
-            backgroundColor: 'var(--color-surface)',
-            padding: '0.35rem 0.75rem',
-            borderRadius: '4px',
-            border: '1px solid var(--color-border)',
-          }}
-        >
+        <div className="subtle-box text-xs dim" style={{ padding: '0.35rem 0.75rem' }}>
           Showing <strong>{sortedFindings.length}</strong> of{' '}
           <strong>{currentAssessmentFindings.length}</strong> total findings
           {isFilterActive && <span style={{ color: 'var(--color-accent)', marginLeft: '4px' }}>(Filtered)</span>}
@@ -181,57 +164,48 @@ export const FindingsPage: React.FC = () => {
       </div>
 
       {/* Control Bar: Search, Filters, Sorting */}
-      <div
-        className="panel"
-        style={{
-          padding: '0.875rem 1.25rem',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        {/* Search Input */}
-        <div style={{ position: 'relative', minWidth: '260px', flex: '1 1 280px' }}>
-          <Search
-            size={14}
-            style={{
-              position: 'absolute',
-              left: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--color-text-dim)',
-            }}
-          />
-          <input
-            type="text"
-            className="input-text"
-            placeholder="Search by title, asset, description, CWE..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={{ width: '100%', paddingLeft: '2.2rem' }}
-            aria-label="Search findings by title, asset, and description"
-          />
-        </div>
-
-        {/* Filters Group */}
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-          {/* Severity Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', fontWeight: 600 }}>SEVERITY:</span>
-            <select
-              className="input-select"
-              value={severityFilter}
+      <div className="panel" style={{ padding: '0.875rem 1.25rem' }}>
+        <div className="row-between responsive-stack">
+          {/* Search Input */}
+          <div style={{ position: 'relative', minWidth: '260px', flex: '1 1 280px' }}>
+            <Search
+              size={14}
+              style={{
+                position: 'absolute',
+                left: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--color-text-dim)',
+              }}
+            />
+            <input
+              type="text"
+              className="input-text"
+              placeholder="Search by title, asset, description, CWE..."
+              value={searchQuery}
               onChange={(e) => {
-                setSeverityFilter(e.target.value);
+                setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              aria-label="Filter by severity"
-            >
+              style={{ width: '100%', paddingLeft: '2.2rem' }}
+              aria-label="Search findings by title, asset, and description"
+            />
+          </div>
+
+          {/* Filters Group */}
+          <div className="row" style={{ flexWrap: 'wrap' }}>
+            {/* Severity Filter */}
+            <div className="row" style={{ gap: '0.25rem' }}>
+              <span className="dim text-xs" style={{ fontWeight: 600 }}>SEVERITY:</span>
+              <select
+                className="input-select"
+                value={severityFilter}
+                onChange={(e) => {
+                  setSeverityFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                aria-label="Filter by severity"
+              >
               <option value="all">All Severities</option>
               <option value="critical">Critical</option>
               <option value="high">High</option>
@@ -242,8 +216,8 @@ export const FindingsPage: React.FC = () => {
           </div>
 
           {/* Verification Status Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', fontWeight: 600 }}>VERIFICATION:</span>
+          <div className="row" style={{ gap: '0.25rem' }}>
+            <span className="dim text-xs" style={{ fontWeight: 600 }}>VERIFICATION:</span>
             <select
               className="input-select"
               value={verificationFilter}
@@ -262,8 +236,8 @@ export const FindingsPage: React.FC = () => {
           </div>
 
           {/* Confidence Filter */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-dim)', fontWeight: 600 }}>CONFIDENCE:</span>
+          <div className="row" style={{ gap: '0.25rem' }}>
+            <span className="dim text-xs" style={{ fontWeight: 600 }}>CONFIDENCE:</span>
             <select
               className="input-select"
               value={confidenceFilter}
@@ -283,9 +257,8 @@ export const FindingsPage: React.FC = () => {
           {/* Reset Filters Button */}
           {isFilterActive && (
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-xs"
               onClick={resetFilters}
-              style={{ padding: '0.45rem 0.65rem', fontSize: '0.75rem' }}
               title="Reset all search queries and filters"
             >
               <RotateCcw size={12} />
@@ -294,6 +267,7 @@ export const FindingsPage: React.FC = () => {
           )}
         </div>
       </div>
+    </div>
 
       {/* Findings Table */}
       <div className="table-container table-scroll">
@@ -412,46 +386,27 @@ export const FindingsPage: React.FC = () => {
                     aria-label={`Inspect finding: ${finding.title}`}
                   >
                     {/* Severity Badge */}
-                    <td>
+                    <td className="w-severity">
                       <SeverityBadge severity={finding.severity} />
                     </td>
 
                     {/* Title, Taxonomy, and Description snippet */}
                     <td>
-                      <div style={{ fontWeight: 600, color: 'var(--color-text-main)', fontSize: '0.875rem' }}>
+                      <div style={{ fontWeight: 600 }}>
                         {finding.title}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '0.72rem',
-                          color: 'var(--color-text-dim)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          marginTop: '2px',
-                        }}
-                      >
+                      <div className="row dim text-xs" style={{ gap: '0.5rem', marginTop: '2px' }}>
                         <span className="font-mono">{finding.id}</span>
                         {finding.cwe && <span className="font-mono">· {finding.cwe}</span>}
                         {finding.cve && <span className="font-mono">· {finding.cve}</span>}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '0.78rem',
-                          color: 'var(--color-text-muted)',
-                          marginTop: '4px',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
+                      <div className="muted text-xs truncate-1" style={{ marginTop: '4px' }}>
                         {finding.description}
                       </div>
                     </td>
 
                     {/* Affected Asset */}
-                    <td className="font-mono" style={{ fontSize: '0.78rem' }}>
+                    <td className="font-mono text-sm">
                       {finding.asset_id || 'Global Target'}
                     </td>
 
