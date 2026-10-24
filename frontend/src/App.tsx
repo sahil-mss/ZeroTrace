@@ -2,8 +2,9 @@ import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
-import { ToastContainer } from './components/ToastContainer';
 import { FindingDetailModal } from './components/FindingDetailModal';
+import { ToastContainer } from './components/ToastContainer';
+import { AssessmentProgressBar } from './components/AssessmentProgressBar';
 import { OverviewPage } from './pages/OverviewPage';
 import { AssessmentsPage } from './pages/AssessmentsPage';
 import { AssetsPage } from './pages/AssetsPage';
@@ -25,6 +26,7 @@ const MainLayout: React.FC = () => {
         <TopBar />
 
         <main className="main-content">
+          <AssessmentProgressBar />
           {activePage === 'overview' && <OverviewPage />}
           {activePage === 'assessments' && <AssessmentsPage />}
           {activePage === 'assets' && <AssetsPage />}

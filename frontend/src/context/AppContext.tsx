@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import type {
   Assessment,
   Asset,
@@ -100,22 +100,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const toastSeqRef = React.useRef(0);
 
-  const addToast = (
-    title: string,
-    message?: string,
-    type: 'info' | 'success' | 'warning' | 'error' = 'info'
-  ) => {
-    const id = `toast_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    setToasts((prev) => [...prev, { id, title, message, type }]);
-    setTimeout(() => {
-      removeToast(id);
-    }, 4500);
-  };
-
-  const removeToast = (id: string) => {
+  const removeToast = React.useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
+
+  const addToast = React.useCallback(
+    (
+      title: string,
+      message?: string,
+      type: 'info' | 'success' | 'warning' | 'error' = 'info'
+    ) => {
+      toastSeqRef.current += 1;
+      const id = `toast_${toastSeqRef.current}`;
+      setToasts((prev) => [...prev, { id, title, message, type }]);
+      setTimeout(() => {
+        removeToast(id);
+      }, 4500);
+    },
+    [removeToast]
+  );
 
   const currentAssessment = assessments.find((a) => a.id === currentAssessmentId);
 
@@ -211,10 +216,5 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
-export const useApp = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
-  return context;
-};
+export { AppContext };
+export { useApp } from './useApp';

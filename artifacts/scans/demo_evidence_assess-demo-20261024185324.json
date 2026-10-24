@@ -1,0 +1,218 @@
+[
+  {
+    "finding_id": "finding-488d0e025a857245",
+    "assessment_id": "assess-demo-20261024185324",
+    "asset_id": "asset-juice-shop-01",
+    "scanner_id": "owasp_zap",
+    "tool_name": "owasp_zap",
+    "tool_version": null,
+    "title": "Cross Site Scripting (Reflected)",
+    "description": "Cross-site Scripting (XSS) is an attack where malicious scripts are injected into trusted websites.",
+    "severity": "INFO",
+    "original_severity": "Severity.HIGH",
+    "confidence": null,
+    "target": {
+      "target_id": "945c0bd35ce34ca5b5eb9c6f96d240ea",
+      "asset_type": "WEB_URL",
+      "target_value": "http://127.0.0.1:3000/#/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+      "ports": null,
+      "is_in_scope": true,
+      "metadata": {}
+    },
+    "cwe_id": 79,
+    "cwe": "CWE-79",
+    "cve_id": null,
+    "cve": null,
+    "root_cause": null,
+    "remediation": "Ensure that all user-supplied data is appropriately context-encoded before rendering in HTML.",
+    "evidence": [
+      {
+        "evidence_id": "eaae6758858c48ccba44215740ca9a03",
+        "evidence_type": "zap_alert_instance",
+        "content_snippet": "<script>alert(1)</script>",
+        "source_artifact_id": "35f0ffc2c33946e7b559a42be387978b",
+        "sha256_hash": "583e66abe1a9d5035a327f7867a87a091109f0b1db0569b0527d01fcc5c51fdb",
+        "metadata": {
+          "plugin_id": "40012",
+          "confidence": "Medium",
+          "parameter": "q",
+          "attack": "<script>alert(1)</script>",
+          "wasc_id": "8",
+          "reference": "https://owasp.org/www-community/attacks/xss/"
+        },
+        "collected_at": "2026-10-24T18:53:24.510507Z"
+      }
+    ],
+    "evidence_ids": [
+      "eaae6758858c48ccba44215740ca9a03"
+    ],
+    "first_observed_at": "2026-10-24T18:53:24.510507Z",
+    "first_seen": "2026-10-24T18:53:24.510507Z",
+    "last_seen": "2026-10-24T18:53:24.510507Z",
+    "verified": true,
+    "verification_status": "CONFIRMED",
+    "fingerprint": "488d0e025a85724587f6d846aa4aa18deea73c2b8af16169849c2bc1ea5df3bc"
+  },
+  {
+    "finding_id": "finding-63bd2a88a3dab9c7",
+    "assessment_id": "assess-demo-20261024185324",
+    "asset_id": "asset-juice-shop-01",
+    "scanner_id": "owasp_zap",
+    "tool_name": "owasp_zap",
+    "tool_version": null,
+    "title": "Anti-CSRF Tokens Check",
+    "description": "No Anti-CSRF tokens were found in a HTML submission form.",
+    "severity": "INFO",
+    "original_severity": "Severity.MEDIUM",
+    "confidence": null,
+    "target": {
+      "target_id": "7e0c34c66e614bd2af6f83e7b6aea714",
+      "asset_type": "WEB_URL",
+      "target_value": "http://127.0.0.1:3000/rest/user/login",
+      "ports": null,
+      "is_in_scope": true,
+      "metadata": {}
+    },
+    "cwe_id": 352,
+    "cwe": "CWE-352",
+    "cve_id": null,
+    "cve": null,
+    "root_cause": null,
+    "remediation": "Phase in Anti-CSRF tokens for sensitive state-changing forms.",
+    "evidence": [
+      {
+        "evidence_id": "f68143f3f8f44f33a9575718d9b27981",
+        "evidence_type": "zap_alert_instance",
+        "content_snippet": "<form action=\"/rest/user/login\" method=\"post\">",
+        "source_artifact_id": "35f0ffc2c33946e7b559a42be387978b",
+        "sha256_hash": "583e66abe1a9d5035a327f7867a87a091109f0b1db0569b0527d01fcc5c51fdb",
+        "metadata": {
+          "plugin_id": "10020",
+          "confidence": "High",
+          "parameter": "email",
+          "attack": "",
+          "wasc_id": "9",
+          "reference": "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"
+        },
+        "collected_at": "2026-10-24T18:53:24.511519Z"
+      }
+    ],
+    "evidence_ids": [
+      "f68143f3f8f44f33a9575718d9b27981"
+    ],
+    "first_observed_at": "2026-10-24T18:53:24.511519Z",
+    "first_seen": "2026-10-24T18:53:24.511519Z",
+    "last_seen": "2026-10-24T18:53:24.511519Z",
+    "verified": true,
+    "verification_status": "CONFIRMED",
+    "fingerprint": "63bd2a88a3dab9c7fd1c8dc8303f4095023bb087e98a2b575ed0c0d40d4830c0"
+  },
+  {
+    "finding_id": "finding-0a11a9c76f491e29",
+    "assessment_id": "assess-demo-20261024185324",
+    "asset_id": "asset-juice-shop-01",
+    "scanner_id": "owasp_zap",
+    "tool_name": "owasp_zap",
+    "tool_version": null,
+    "title": "Content Security Policy (CSP) Header Not Set",
+    "description": "Content Security Policy (CSP) is an added layer of security that helps detect and mitigate attacks.",
+    "severity": "INFO",
+    "original_severity": "Severity.LOW",
+    "confidence": null,
+    "target": {
+      "target_id": "61c0efd1cb45475f9eb735da0d2993ac",
+      "asset_type": "WEB_URL",
+      "target_value": "http://127.0.0.1:3000/",
+      "ports": null,
+      "is_in_scope": true,
+      "metadata": {}
+    },
+    "cwe_id": 693,
+    "cwe": "CWE-693",
+    "cve_id": null,
+    "cve": null,
+    "root_cause": null,
+    "remediation": "Ensure that your web server transmits the Content-Security-Policy header.",
+    "evidence": [
+      {
+        "evidence_id": "31706d176eef432a8c606d70ec1094f3",
+        "evidence_type": "zap_alert_instance",
+        "content_snippet": "Alert triggered on parameter: '<none>'",
+        "source_artifact_id": "35f0ffc2c33946e7b559a42be387978b",
+        "sha256_hash": "583e66abe1a9d5035a327f7867a87a091109f0b1db0569b0527d01fcc5c51fdb",
+        "metadata": {
+          "plugin_id": "10038",
+          "confidence": "High",
+          "parameter": "",
+          "attack": "",
+          "wasc_id": "15",
+          "reference": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP"
+        },
+        "collected_at": "2026-10-24T18:53:24.511519Z"
+      }
+    ],
+    "evidence_ids": [
+      "31706d176eef432a8c606d70ec1094f3"
+    ],
+    "first_observed_at": "2026-10-24T18:53:24.511519Z",
+    "first_seen": "2026-10-24T18:53:24.511519Z",
+    "last_seen": "2026-10-24T18:53:24.511519Z",
+    "verified": false,
+    "verification_status": "NEEDS_REVIEW",
+    "fingerprint": "0a11a9c76f491e2987d470c5e124027f684163e68f8b2c692ba08e9555138e74"
+  },
+  {
+    "finding_id": "finding-c9d064e1599f7ffa",
+    "assessment_id": "assess-demo-20261024185324",
+    "asset_id": "asset-juice-shop-01",
+    "scanner_id": "owasp_zap",
+    "tool_name": "owasp_zap",
+    "tool_version": null,
+    "title": "Storable and Cacheable Content",
+    "description": "The response contents are storable by caching components such as proxies.",
+    "severity": "INFO",
+    "original_severity": "Severity.INFO",
+    "confidence": null,
+    "target": {
+      "target_id": "b67a7e5053f84aaa84143755a4175b2f",
+      "asset_type": "WEB_URL",
+      "target_value": "http://127.0.0.1:3000/public/images/carousel/1.jpg",
+      "ports": null,
+      "is_in_scope": true,
+      "metadata": {}
+    },
+    "cwe_id": 524,
+    "cwe": "CWE-524",
+    "cve_id": null,
+    "cve": null,
+    "root_cause": null,
+    "remediation": "Review Cache-Control directives for sensitive endpoints.",
+    "evidence": [
+      {
+        "evidence_id": "c3c26f3cb7314691aabb5416b20457dd",
+        "evidence_type": "zap_alert_instance",
+        "content_snippet": "Cache-Control: public, max-age=14400",
+        "source_artifact_id": "35f0ffc2c33946e7b559a42be387978b",
+        "sha256_hash": "583e66abe1a9d5035a327f7867a87a091109f0b1db0569b0527d01fcc5c51fdb",
+        "metadata": {
+          "plugin_id": "10049",
+          "confidence": "Low",
+          "parameter": "",
+          "attack": "",
+          "wasc_id": "13",
+          "reference": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"
+        },
+        "collected_at": "2026-10-24T18:53:24.511519Z"
+      }
+    ],
+    "evidence_ids": [
+      "c3c26f3cb7314691aabb5416b20457dd"
+    ],
+    "first_observed_at": "2026-10-24T18:53:24.511519Z",
+    "first_seen": "2026-10-24T18:53:24.511519Z",
+    "last_seen": "2026-10-24T18:53:24.511519Z",
+    "verified": false,
+    "verification_status": "NEEDS_REVIEW",
+    "fingerprint": "c9d064e1599f7ffacb0641d97012c23109a0edb532a35a0e561aeb650d051358"
+  }
+]

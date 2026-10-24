@@ -192,7 +192,7 @@ class MockScanner(BaseScanner):
         findings = self.parse_results(raw_evidence, target=request.target)
 
         end_time = datetime.now(timezone.utc)
-        duration = (end_time - start_time).total_seconds()
+        duration = max((end_time - start_time).total_seconds(), 0.001)
 
         return ScanResult(
             request_id=request.request_id,
