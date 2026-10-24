@@ -99,3 +99,14 @@ class JobRepository:
         )
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
+
+    def get_by_idempotency_key(self, assessment_id: str, idempotency_key: str) -> Job | None:
+        """Finds a job within an assessment by caller idempotency key."""
+        stmt = select(JobModel).where(
+            JobModel.assessment_id == assessment_id,
+            JobModel.result_summary_json.like(f'%"idempotency_key": "{idempotency_key}"%'),
+        )
+        model = self.session.scalars(stmt).first()
+        if not model:
+            return None
+        return model.to_domain()

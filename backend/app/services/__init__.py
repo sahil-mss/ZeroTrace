@@ -9,6 +9,13 @@ from backend.app.services.evidence_service import (
     RawEvidenceStorageBackend,
     scrub_text_excerpt,
 )
+from backend.app.services.job_service import (
+    ALLOWED_TRANSITIONS,
+    AssessmentNotApprovedError,
+    InvalidStateTransitionError,
+    JobService,
+    PolicyViolationError,
+)
 from backend.app.services.normalization import (
     calculate_content_hash,
     canonical_json_dumps,
@@ -69,4 +76,10 @@ __all__ = [
     # OSINT Service
     "OSINTCollectionService",
     "OSINTCollectionSummary",
+    # Job Service
+    "JobService",
+    "ALLOWED_TRANSITIONS",
+    "InvalidStateTransitionError",
+    "AssessmentNotApprovedError",
+    "PolicyViolationError",
 ]
