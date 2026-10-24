@@ -25,6 +25,16 @@ class ScanStatus(str, Enum):
     NEEDS_APPROVAL = "NEEDS_APPROVAL"
 
 
+class VerificationStatus(str, Enum):
+    """Validation status assigned to a security finding during verification."""
+
+    CONFIRMED = "CONFIRMED"
+    LIKELY = "LIKELY"
+    FALSE_POSITIVE = "FALSE_POSITIVE"
+    UNVERIFIED = "UNVERIFIED"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+
+
 class Severity(str, Enum):
     """Normalized vulnerability severity classification.
 

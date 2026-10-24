@@ -11,6 +11,7 @@ from aegispt.security_engine.schemas.enums import (
     PermissionLevel,
     ScanStatus,
     Severity,
+    VerificationStatus,
 )
 from aegispt.security_engine.schemas.finding import (
     EvidenceReference,
@@ -42,6 +43,7 @@ from aegispt.security_engine.schemas.target import ScanTarget
 __all__ = [
     # Enums
     "ScanStatus",
+    "VerificationStatus",
     "Severity",
     "AssetType",
     "PermissionLevel",
