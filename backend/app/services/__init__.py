@@ -20,6 +20,10 @@ from backend.app.services.normalization import (
     normalize_structured_data,
     normalize_url,
 )
+from backend.app.services.osint_service import (
+    OSINTCollectionService,
+    OSINTCollectionSummary,
+)
 from backend.app.services.scope_validator import (
     NormalizedTarget,
     ScopeReasonCode,
@@ -62,4 +66,7 @@ __all__ = [
     # Asset Service
     "AssetService",
     "AssetObservation",
+    # OSINT Service
+    "OSINTCollectionService",
+    "OSINTCollectionSummary",
 ]
