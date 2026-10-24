@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/useApp';
+import { useFocusTrap } from './useFocusTrap';
 import {
   X,
   FileCode,
@@ -32,6 +33,15 @@ export const FindingDetailModal: React.FC = () => {
   const [copiedEvidenceId, setCopiedEvidenceId] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  const handleClose = () => {
+    setSelectedFindingId(null);
+  };
+
+  const focusTrapRef = useFocusTrap({
+    isOpen: Boolean(selectedFindingId),
+    onClose: handleClose,
+  });
 
   if (!selectedFindingId) return null;
 
@@ -75,11 +85,6 @@ export const FindingDetailModal: React.FC = () => {
     setTimeout(() => setCopiedEvidenceId(null), 2000);
   };
 
-  const handleClose = () => {
-    // Simply close detail panel without modifying filter state
-    setSelectedFindingId(null);
-  };
-
   return (
     <div
       style={{
@@ -94,9 +99,11 @@ export const FindingDetailModal: React.FC = () => {
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
-      aria-label={`Finding details: ${finding.title}`}
+      aria-labelledby="finding-detail-title"
     >
       <div
+        ref={focusTrapRef}
+        tabIndex={-1}
         style={{
           width: '840px',
           maxWidth: '100%',
@@ -107,6 +114,7 @@ export const FindingDetailModal: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           overflowY: 'auto',
+          outline: 'none',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -173,7 +181,7 @@ export const FindingDetailModal: React.FC = () => {
             </span>
           </div>
 
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.3 }}>
+          <h2 id="finding-detail-title" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.3 }}>
             {finding.title}
           </h2>
 
@@ -521,7 +529,11 @@ export const FindingDetailModal: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div
+              style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+              aria-busy={isAnalyzing}
+              aria-live="polite"
+            >
               {/* Mandatory Advisory Notice */}
               <div
                 style={{
