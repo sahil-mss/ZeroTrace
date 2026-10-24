@@ -91,14 +91,24 @@ class JobRepository:
         )
         return self.update(job)
 
-    def list_by_assessment(self, assessment_id: str) -> list[Job]:
+    def list_by_assessment(
+        self,
+        assessment_id: str,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[Job]:
         stmt = (
             select(JobModel)
             .where(JobModel.assessment_id == assessment_id)
             .order_by(JobModel.created_at.desc())
         )
+        if offset is not None:
+            stmt = stmt.offset(offset)
+        if limit is not None:
+            stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
+
 
     def get_by_idempotency_key(self, assessment_id: str, idempotency_key: str) -> Job | None:
         """Finds a job within an assessment by caller idempotency key."""

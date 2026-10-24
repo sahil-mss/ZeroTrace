@@ -78,11 +78,21 @@ class FindingRepository:
         self.session.flush()
         return model.to_domain()
 
-    def list_by_assessment(self, assessment_id: str) -> list[Finding]:
+    def list_by_assessment(
+        self,
+        assessment_id: str,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[Finding]:
         stmt = (
             select(FindingModel)
             .where(FindingModel.assessment_id == assessment_id)
             .order_by(FindingModel.first_seen.asc())
         )
+        if offset is not None:
+            stmt = stmt.offset(offset)
+        if limit is not None:
+            stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
+

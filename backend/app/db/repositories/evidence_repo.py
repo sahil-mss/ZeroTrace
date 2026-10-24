@@ -65,16 +65,31 @@ class EvidenceRepository:
             return None
         return model.to_domain()
 
-    def list_by_assessment(self, assessment_id: str) -> list[Evidence]:
+    def list_by_assessment(
+        self,
+        assessment_id: str,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[Evidence]:
         stmt = (
             select(EvidenceModel)
             .where(EvidenceModel.assessment_id == assessment_id)
             .order_by(EvidenceModel.collected_at.asc())
         )
+        if offset is not None:
+            stmt = stmt.offset(offset)
+        if limit is not None:
+            stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
 
-    def list_by_asset(self, assessment_id: str, asset_id: str) -> list[Evidence]:
+    def list_by_asset(
+        self,
+        assessment_id: str,
+        asset_id: str,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[Evidence]:
         stmt = (
             select(EvidenceModel)
             .where(
@@ -83,8 +98,13 @@ class EvidenceRepository:
             )
             .order_by(EvidenceModel.collected_at.asc())
         )
+        if offset is not None:
+            stmt = stmt.offset(offset)
+        if limit is not None:
+            stmt = stmt.limit(limit)
         models = self.session.scalars(stmt).all()
         return [m.to_domain() for m in models]
+
 
     def update(self, evidence: Evidence) -> Evidence:
         model = self.session.get(EvidenceModel, evidence.evidence_id)

@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Centralized application configuration for AegisPT."""
+    """Centralized application configuration for ZeroTrace."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -21,6 +21,15 @@ class Settings(BaseSettings):
     HOST: str = "127.0.0.1"
     PORT: int = 8000
 
+    # Authentication & Security
+    # Shared API Bearer Token is a development prototype, not a complete multi-user system.
+    # When unset or empty, protected endpoints fail closed.
+    API_BEARER_TOKEN: str | None = None
+    CORS_ALLOWED_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
     # Storage paths
     STORAGE_DIR: str = "./aegis_data"
     EVIDENCE_STORAGE_PATH: str = "./aegis_data/evidence_blobs"
@@ -34,3 +43,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+

@@ -36,6 +36,13 @@ class ScopeRule(BaseModel):
     )
     description: str | None = Field(default=None, max_length=255)
 
+    @field_validator("target_type", mode="before")
+    @classmethod
+    def normalize_target_type(cls, v: object) -> object:
+        if isinstance(v, str):
+            return v.strip().upper()
+        return v
+
     @field_validator("approved_ports")
     @classmethod
     def validate_ports(cls, ports: list[int]) -> list[int]:
@@ -43,6 +50,7 @@ class ScopeRule(BaseModel):
             if not (1 <= p <= 65535):
                 raise ValueError(f"Port {p} is outside valid range 1-65535")
         return sorted(list(set(ports)))
+
 
     @field_validator("target_value")
     @classmethod
