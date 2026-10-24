@@ -31,9 +31,14 @@ scanners = [
     "python-nmap>=0.7.1",
 ]
 
+[tool.setuptools.packages.find]
+include = ["aegispt*", "aegis_common*", "backend*", "modules*", "schemas*"]
+exclude = ["tests*", "frontend*", "docker*", "lab*", "aegis_data*"]
+
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+pythonpath = ["."]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

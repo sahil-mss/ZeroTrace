@@ -36,6 +36,7 @@ htmlcov/
 # Datasets & raw scans
 datasets/raw/
 scan_artifacts/
+artifacts/
 aegis_data/
 *.db
 *.sqlite3
