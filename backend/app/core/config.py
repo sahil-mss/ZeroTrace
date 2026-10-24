@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     )
 
     # Application metadata
-    APP_NAME: str = "AegisPT"
+    APP_NAME: str = "ZeroTrace"
     APP_VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True

@@ -4,8 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.api.app import create_app
-from schemas.enums import JobStatus
-from schemas.models import EvidenceSourceType
+from schemas.enums import AssetType, JobStatus
+from schemas.models import Asset, EvidenceSourceType
 
 
 @pytest.fixture
@@ -94,7 +94,15 @@ def test_end_to_end_assessment_workflow(test_client):
     assert resp_bad_find.status_code == 400
     assert "does not exist in assessment evidence store" in resp_bad_find.json()["detail"]
 
-    # 5. Submit valid Finding with the registered evidence ID
+    # 5. Register in-scope target asset and submit valid Finding with the registered evidence ID
+    test_client.app.state.db.save_asset(
+        Asset(
+            asset_id="asset_juice_01",
+            assessment_id=assessment_id,
+            asset_type=AssetType.URL,
+            value="http://127.0.0.1:3000",
+        )
+    )
     valid_finding = {
         "assessment_id": assessment_id,
         "asset_id": "asset_juice_01",

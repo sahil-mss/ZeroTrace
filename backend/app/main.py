@@ -9,7 +9,7 @@ def create_application() -> FastAPI:
     application = FastAPI(
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
-        description="AegisPT: AI-Powered Penetration Testing & Security Research Platform",
+        description="ZeroTrace: AI-Powered Penetration Testing & Security Research Platform",
     )
 
     # Register API route handlers

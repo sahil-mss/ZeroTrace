@@ -33,7 +33,7 @@ coverage.xml
 test-results/
 
 # Collected scan artifacts, evidence blobs & raw tool outputs
-storage/
+/storage/
 scan_output/
 *.xml
 *.log

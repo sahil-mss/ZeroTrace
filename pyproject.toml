@@ -1,11 +1,11 @@
 [project]
-name = "aegispt"
+name = "zerotrace"
 version = "0.1.0"
-description = "AegisPT: Modular AI-Powered Penetration Testing & Security Research Platform"
+description = "ZeroTrace: Modular AI-Powered Penetration Testing & Security Research Platform"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-    { name = "Person 1", email = "person1@aegispt.local" }
+    { name = "Person 1", email = "person1@zerotrace.local" }
 ]
 dependencies = [
     "fastapi>=0.110.0",

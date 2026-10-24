@@ -5,7 +5,7 @@ import pytest
 from backend.storage.database import DatabaseManager
 from modules.osint.normalizer import AssetNormalizer
 from schemas.enums import AssetType, ScopeStatus
-from schemas.models import ScopePolicy
+from schemas.models import Assessment, ScopePolicy
 
 
 @pytest.fixture
@@ -16,8 +16,16 @@ def temp_db():
 
 
 def test_asset_deduplication(temp_db):
-    normalizer = AssetNormalizer(temp_db)
     assessment_id = "assess_norm_01"
+    temp_db.save_assessment(
+        Assessment(
+            assessment_id=assessment_id,
+            title="Norm Test",
+            organization_name="TestOrg",
+            authorized_by="Tester",
+        )
+    )
+    normalizer = AssetNormalizer(temp_db)
 
     scope = ScopePolicy(target_domains=["lab.example.test"])
 
@@ -50,8 +58,16 @@ def test_asset_deduplication(temp_db):
 
 
 def test_correlate_dns_records(temp_db):
-    normalizer = AssetNormalizer(temp_db)
     assessment_id = "assess_norm_02"
+    temp_db.save_assessment(
+        Assessment(
+            assessment_id=assessment_id,
+            title="Norm Test 2",
+            organization_name="TestOrg",
+            authorized_by="Tester",
+        )
+    )
+    normalizer = AssetNormalizer(temp_db)
     scope = ScopePolicy(target_domains=["lab.example.test"], target_ips=["127.0.0.1"])
 
     domain_asset, _ = normalizer.normalize_and_store_asset(

@@ -50,6 +50,47 @@ Copy-Item .env.example .env
 
 ---
 
+## 🗄️ Database Persistence & Alembic Migrations (Session 3)
+
+AegisPT uses **SQLAlchemy 2** for persistence with **SQLite** as the initial development database and full **Alembic** migration management.
+
+### Centralized Configuration
+- The database connection string is read from `DATABASE_URL` in `.env` (or environment variables).
+- Default local path: `sqlite:///./aegis_data/aegispt.db`
+- **SQLite Foreign-Key Enforcement**: Foreign-key checks are strictly enabled on all SQLite database connections via `PRAGMA foreign_keys=ON;`.
+
+### Initializing the Database & Running Migrations
+To apply the database schema migration to a fresh development environment:
+
+```powershell
+# Apply all pending Alembic migrations
+alembic upgrade head
+
+# Inspect current database revision
+alembic current
+```
+
+### Creating Future Migrations
+When ORM models in `backend/app/db/models.py` are modified:
+```powershell
+# Autogenerate a new migration script
+alembic revision --autogenerate -m "describe_changes"
+
+# Apply the new migration
+alembic upgrade head
+```
+
+### Persistence Models & Integrity Rules
+The database layer maps directly to the shared contracts (`aegis_common`) across 6 core entities:
+1. **`assessments`**: Root authority records with portable JSON scope rules (`scope_rules_json`, `scope_json`) and lifecycle status.
+2. **`assets`**: Discovered target assets with strict foreign keys to parent assessments and deduplication enforced via unique constraint `uq_asset_assessment_value`.
+3. **`evidence`**: Immutable evidence records with cryptographic SHA-256 content hashes, cross-assessment asset verification, and sanitized payloads (no raw credentials stored).
+4. **`findings`**: Normalized vulnerabilities requiring verified parent assessment, valid asset reference, and verified evidence provenance IDs.
+5. **`jobs`**: Worker and scanner task execution records with resource budgets, timeouts, and atomic state transitions.
+6. **`audit_events`**: Append-only immutable compliance audit trail. Overwrites or updates to existing audit events are strictly prohibited.
+
+---
+
 ## 🚀 Application Startup
 
 Start the backend server using the runner script:
