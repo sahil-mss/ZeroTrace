@@ -9,7 +9,7 @@ from modules.ai.service import AIAnalysisService
 from schemas.contracts import AIAnalysis, Evidence, Finding
 
 app = FastAPI(
-    title="ZeroTrace / AegisPT Security Core API",
+    title="ZeroTrace Security Core API",
     description="Backend orchestration, scope validation, and evidence-grounded AI analysis API.",
     version="1.0.0",
 )
@@ -66,7 +66,7 @@ def health_check():
     ai_config = AIConfig()
     return {
         "status": "healthy",
-        "service": "AegisPT / ZeroTrace Backend Core",
+        "service": "ZeroTrace Backend Core",
         "ai_provider": ai_config.provider,
         "ai_model": ai_config.model_name,
         "external_calls_allowed": ai_config.allow_external_calls,

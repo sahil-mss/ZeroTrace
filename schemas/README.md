@@ -1,4 +1,4 @@
-# AegisPT / ZeroTrace — Shared Schema Contracts
+# ZeroTrace — Shared Schema Contracts
 
 This package defines the unified data contracts shared across all three subsystems.
 Every module (OSINT, Scanners, AI, Backend, Reporting, and Frontend) must adhere strictly to these schemas.

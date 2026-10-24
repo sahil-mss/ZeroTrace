@@ -1,6 +1,6 @@
-# ZeroTrace (AegisPT) Security Core
+# ZeroTrace
 
-ZeroTrace (also known as AegisPT Security Core) is a security research and automated triage platform designed to unify reconnaissance, vulnerability assessment, evidence-grounded AI triage, and executive reporting into a single transparent workflow.
+ZeroTrace is a security research and automated triage platform designed to unify reconnaissance, vulnerability assessment, evidence-grounded AI triage, and executive reporting into a single transparent workflow.
 
 The platform ingests findings from external OSINT sources and vulnerability scanners, normalizes them against strict schemas, enforces verification rules so that unbacked claims are not treated as confirmed exploits, provides AI-assisted triage grounded strictly in empirical evidence, and generates auditable security assessment reports.
 
@@ -307,7 +307,7 @@ uvicorn backend.app:app --host 127.0.0.1 --port 8000
 ```json
 {
   "status": "healthy",
-  "service": "AegisPT / ZeroTrace Backend Core",
+  "service": "ZeroTrace Backend Core",
   "ai_provider": "deterministic",
   "ai_model": "llama3.2",
   "external_calls_allowed": false
@@ -366,7 +366,7 @@ Checks backend service availability and active AI configuration.
   ```json
   {
     "status": "healthy",
-    "service": "AegisPT / ZeroTrace Backend Core",
+    "service": "ZeroTrace Backend Core",
     "ai_provider": "deterministic",
     "ai_model": "llama3.2",
     "external_calls_allowed": false
