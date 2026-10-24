@@ -7,6 +7,7 @@ and scan execution results consumed by Person 1 and Person 3.
 from aegispt.security_engine.schemas.enums import (
     AssetType,
     ImpactLevel,
+    JobStatus,
     OutputFormat,
     PermissionLevel,
     ScanStatus,
@@ -16,6 +17,12 @@ from aegispt.security_engine.schemas.enums import (
 from aegispt.security_engine.schemas.finding import (
     EvidenceReference,
     NormalizedFinding,
+)
+from aegispt.security_engine.schemas.job import (
+    JobStateTransition,
+    ScanJob,
+    ScanJobRequest,
+    ScanJobResponse,
 )
 from aegispt.security_engine.schemas.observation import ServiceObservation
 from aegispt.security_engine.schemas.profile import (
@@ -43,12 +50,18 @@ from aegispt.security_engine.schemas.target import ScanTarget
 __all__ = [
     # Enums
     "ScanStatus",
+    "JobStatus",
     "VerificationStatus",
     "Severity",
     "AssetType",
     "PermissionLevel",
     "ImpactLevel",
     "OutputFormat",
+    # Job and Lifecycle
+    "ScanJobRequest",
+    "JobStateTransition",
+    "ScanJob",
+    "ScanJobResponse",
     # Target
     "ScanTarget",
     # Profile

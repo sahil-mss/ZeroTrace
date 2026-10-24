@@ -23,3 +23,19 @@ class ScannerExecutionError(SecurityEngineError):
 
 class ScannerTimeoutError(SecurityEngineError):
     """Raised when a scanner exceeds its allotted execution window."""
+
+
+class ScopeViolationError(SecurityEngineError):
+    """Raised when an asset or target violates assessment scope or safety policy."""
+
+
+class AIRecommendationValidationError(SecurityEngineError):
+    """Raised when an AI Planner recommendation fails safety, scope, or capability validation."""
+
+
+class JobLifecycleError(SecurityEngineError):
+    """Raised when an invalid state transition or operation occurs on a scan job."""
+
+
+class ScannerRegistryError(SecurityEngineError):
+    """Raised when an unregistered or incompatible scanner is requested."""

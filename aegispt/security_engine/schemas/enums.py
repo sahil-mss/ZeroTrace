@@ -25,6 +25,32 @@ class ScanStatus(str, Enum):
     NEEDS_APPROVAL = "NEEDS_APPROVAL"
 
 
+class JobStatus(str, Enum):
+    """Lifecycle states for assessment jobs managed by Person 1 and executed by Person 2.
+
+    State Progression:
+    - CREATED: Job request received and validated syntactically.
+    - POLICY_CHECK: Scope and authorization validation against engagement rules.
+    - QUEUED: Job waiting in execution queue.
+    - RUNNING: Scanner process actively executing.
+    - REVIEW: Execution complete; findings normalized and undergoing verification.
+    - COMPLETED: Job finished successfully with all findings verified.
+    - FAILED: Execution, verification, or policy check failure.
+    - CANCELLED: Job cancelled by operator or timeout monitor.
+    - NEEDS_APPROVAL: Intrusive profile requiring explicit operator authorization.
+    """
+
+    CREATED = "CREATED"
+    POLICY_CHECK = "POLICY_CHECK"
+    QUEUED = "QUEUED"
+    RUNNING = "RUNNING"
+    REVIEW = "REVIEW"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    NEEDS_APPROVAL = "NEEDS_APPROVAL"
+
+
 class VerificationStatus(str, Enum):
     """Validation status assigned to a security finding during verification."""
 
